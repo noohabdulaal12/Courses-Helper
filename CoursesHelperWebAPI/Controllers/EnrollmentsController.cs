@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
+using CoursesHelperWebAPI.DTOs;
 
 namespace CoursesHelperWebAPI.Controllers
 {
@@ -41,39 +42,39 @@ namespace CoursesHelperWebAPI.Controllers
 
         // POST: api/Enrollments
         [HttpPost]
-        public async Task<ActionResult> Enroll(TraineeSession enrollment)
+        public async Task<ActionResult> Enroll(CreateEnrollmentDto dto)
         {
-            // 1. Validate trainee
-            var trainee = await _context.Users.FindAsync(enrollment.TraineeId);
+            if (string.IsNullOrWhiteSpace(dto.TraineeId))
+                return BadRequest("TraineeId is required.");
+
+            if (dto.AmountPaid < 0)
+                return BadRequest("AmountPaid cannot be negative.");
+
+            var trainee = await _context.Users.FindAsync(dto.TraineeId);
             if (trainee == null)
                 return BadRequest("Trainee does not exist.");
 
-            // 2. Validate session
             var session = await _context.CourseSessions
                 .Include(s => s.TraineeSessions)
-                .FirstOrDefaultAsync(s => s.Id == enrollment.SessionId);
+                .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
 
             if (session == null)
                 return BadRequest("Session does not exist.");
 
-            // 3. Prevent duplicate enrollment
             bool alreadyEnrolled = await _context.TraineeSessions.AnyAsync(e =>
-                e.TraineeId == enrollment.TraineeId &&
-                e.SessionId == enrollment.SessionId);
+                e.TraineeId == dto.TraineeId &&
+                e.SessionId == dto.SessionId);
 
             if (alreadyEnrolled)
                 return BadRequest("Trainee already enrolled in this session.");
 
-            // 4. Capacity check
             int currentCount = session.TraineeSessions.Count;
-
             if (currentCount >= session.MaxSeats)
                 return BadRequest("Session is full.");
 
-            // 5. Time conflict check
             var traineeSessions = await _context.TraineeSessions
                 .Include(e => e.CourseSession)
-                .Where(e => e.TraineeId == enrollment.TraineeId)
+                .Where(e => e.TraineeId == dto.TraineeId)
                 .ToListAsync();
 
             bool timeConflict = traineeSessions.Any(e =>
@@ -84,35 +85,53 @@ namespace CoursesHelperWebAPI.Controllers
             if (timeConflict)
                 return BadRequest("Trainee has a time conflict.");
 
-            // SAVE
-            enrollment.Status = Status.Requested;
+            var enrollment = new TraineeSession
+            {
+                TraineeId = dto.TraineeId,
+                SessionId = dto.SessionId,
+                AmountPaid = dto.AmountPaid,
+                Status = Status.Requested
+            };
+
             _context.TraineeSessions.Add(enrollment);
             await _context.SaveChangesAsync();
 
-            return Ok("Enrollment successful.");
+            return Ok(new
+            {
+                enrollment.TraineeId,
+                enrollment.SessionId,
+                enrollment.AmountPaid,
+                enrollment.Status
+            });
         }
 
-        // PUT: api/Enrollments (update status/payment)
+        // PUT: api/Enrollments
         [HttpPut]
-        public async Task<IActionResult> UpdateEnrollment(TraineeSession updated)
+        public async Task<IActionResult> UpdateEnrollment(UpdateEnrollmentDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.TraineeId))
+                return BadRequest("TraineeId is required.");
+
+            if (dto.AmountPaid < 0)
+                return BadRequest("AmountPaid cannot be negative.");
+
             var existing = await _context.TraineeSessions
                 .FirstOrDefaultAsync(e =>
-                    e.TraineeId == updated.TraineeId &&
-                    e.SessionId == updated.SessionId);
+                    e.TraineeId == dto.TraineeId &&
+                    e.SessionId == dto.SessionId);
 
             if (existing == null)
                 return NotFound();
 
-            existing.AmountPaid = updated.AmountPaid;
-            existing.Status = updated.Status;
+            existing.AmountPaid = dto.AmountPaid;
+            existing.Status = dto.Status;
 
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/Enrollments
+        // DELETE: api/Enrollments?traineeId=...&sessionId=...
         [HttpDelete]
         public async Task<IActionResult> DeleteEnrollment(string traineeId, int sessionId)
         {

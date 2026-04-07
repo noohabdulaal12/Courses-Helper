@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
+using CoursesHelperWebAPI.DTOs;
 
 namespace CoursesHelperWebAPI.Controllers
 {
@@ -64,17 +65,29 @@ namespace CoursesHelperWebAPI.Controllers
 
         // POST: api/Courses
         [HttpPost]
-        public async Task<ActionResult> CreateCourse(Course course)
+        public async Task<ActionResult> CreateCourse(CreateCourseDto dto)
         {
-            if (course.Price < 0)
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest("Name is required.");
+
+            if (dto.Price < 0)
                 return BadRequest("Price cannot be negative.");
 
-            if (course.NumberOfSessions <= 0)
+            if (dto.NumberOfSessions <= 0)
                 return BadRequest("Number of sessions must be greater than zero.");
 
-            var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == course.SubjectId);
+            var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == dto.SubjectId);
             if (!subjectExists)
                 return BadRequest("Selected subject does not exist.");
+
+            var course = new Course
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                SubjectId = dto.SubjectId,
+                NumberOfSessions = dto.NumberOfSessions,
+                Price = dto.Price
+            };
 
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
@@ -92,30 +105,30 @@ namespace CoursesHelperWebAPI.Controllers
 
         // PUT: api/Courses/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(int id, Course course)
+        public async Task<IActionResult> UpdateCourse(int id, CreateCourseDto dto)
         {
-            if (id != course.Id)
-                return BadRequest("ID mismatch.");
-
             var existingCourse = await _context.Courses.FindAsync(id);
             if (existingCourse == null)
                 return NotFound();
 
-            var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == course.SubjectId);
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest("Name is required.");
+
+            if (dto.Price < 0)
+                return BadRequest("Price cannot be negative.");
+
+            if (dto.NumberOfSessions <= 0)
+                return BadRequest("Number of sessions must be greater than zero.");
+
+            var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == dto.SubjectId);
             if (!subjectExists)
                 return BadRequest("Selected subject does not exist.");
 
-            if (course.Price < 0)
-                return BadRequest("Price cannot be negative.");
-
-            if (course.NumberOfSessions <= 0)
-                return BadRequest("Number of sessions must be greater than zero.");
-
-            existingCourse.Name = course.Name;
-            existingCourse.Description = course.Description;
-            existingCourse.SubjectId = course.SubjectId;
-            existingCourse.NumberOfSessions = course.NumberOfSessions;
-            existingCourse.Price = course.Price;
+            existingCourse.Name = dto.Name;
+            existingCourse.Description = dto.Description;
+            existingCourse.SubjectId = dto.SubjectId;
+            existingCourse.NumberOfSessions = dto.NumberOfSessions;
+            existingCourse.Price = dto.Price;
 
             await _context.SaveChangesAsync();
 
