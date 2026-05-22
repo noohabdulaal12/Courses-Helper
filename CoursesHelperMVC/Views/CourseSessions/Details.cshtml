@@ -1,0 +1,36 @@
+@model CourseSession
+
+@{
+    ViewData["Title"] = "Course Session Details";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Course.Name</h1>
+        <p class="text-muted mb-0">Course session details</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to sessions</a>
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Course</dt>
+    <dd class="col-sm-9">@Model.Course.Name</dd>
+
+    <dt class="col-sm-3">Instructor</dt>
+    <dd class="col-sm-9">@CourseSessionsController.FormatInstructor(Model.Instructor)</dd>
+
+    <dt class="col-sm-3">Classroom</dt>
+    <dd class="col-sm-9">@CourseSessionsController.FormatClassroom(Model.Classroom)</dd>
+
+    <dt class="col-sm-3">Date</dt>
+    <dd class="col-sm-9">@Model.StartingDate.ToString("yyyy-MM-dd") (@Model.DayOfWeek)</dd>
+
+    <dt class="col-sm-3">Time</dt>
+    <dd class="col-sm-9">@Model.StartingTime.ToString(@"hh\:mm") - @Model.EndingTime.ToString(@"hh\:mm")</dd>
+
+    <dt class="col-sm-3">Max seats</dt>
+    <dd class="col-sm-9">@Model.MaxSeats</dd>
+</dl>

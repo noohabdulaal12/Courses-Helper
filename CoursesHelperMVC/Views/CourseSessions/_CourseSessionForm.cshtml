@@ -1,0 +1,47 @@
+@model CourseSessionFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="CourseId" class="form-label"></label>
+        <select asp-for="CourseId" asp-items="ViewBag.Courses" class="form-select">
+            <option value="">Choose a course</option>
+        </select>
+        <span asp-validation-for="CourseId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="InstructorId" class="form-label"></label>
+        <select asp-for="InstructorId" asp-items="ViewBag.Instructors" class="form-select">
+            <option value="">Choose an instructor</option>
+        </select>
+        <span asp-validation-for="InstructorId" class="text-danger"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="ClassroomId" class="form-label"></label>
+        <select asp-for="ClassroomId" asp-items="ViewBag.Classrooms" class="form-select">
+            <option value="">Choose a classroom</option>
+        </select>
+        <span asp-validation-for="ClassroomId" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="MaxSeats" class="form-label"></label>
+        <input asp-for="MaxSeats" class="form-control" min="1" />
+        <span asp-validation-for="MaxSeats" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="StartingDate" class="form-label"></label>
+        <input asp-for="StartingDate" type="date" class="form-control" />
+        <span asp-validation-for="StartingDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="StartingTime" class="form-label"></label>
+        <input asp-for="StartingTime" type="time" class="form-control" />
+        <span asp-validation-for="StartingTime" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="EndingTime" class="form-label"></label>
+        <input asp-for="EndingTime" type="time" class="form-control" />
+        <span asp-validation-for="EndingTime" class="text-danger"></span>
+    </div>
+</div>

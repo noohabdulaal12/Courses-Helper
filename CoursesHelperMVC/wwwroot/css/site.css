@@ -30,7 +30,8 @@ main {
 }
 
 .course-form,
-.subject-form {
+.subject-form,
+.session-form {
   max-width: 900px;
 }
 
