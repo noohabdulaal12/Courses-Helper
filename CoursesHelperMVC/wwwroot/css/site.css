@@ -31,13 +31,18 @@ main {
 
 .course-form,
 .subject-form,
-.session-form {
+.session-form,
+.enrollment-form {
   max-width: 900px;
 }
 
 .course-description-preview,
 .subject-description-preview {
   max-width: 44rem;
+}
+
+.report-section {
+  height: 100%;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

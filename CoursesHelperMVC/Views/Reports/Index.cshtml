@@ -1,0 +1,185 @@
+@model ReportsDashboardViewModel
+
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Reports dashboard</h1>
+    <p class="text-muted mb-0">Read-only training metrics across courses, sessions, enrollments, and revenue.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total courses</div>
+                <div class="display-6">@Model.TotalCourses</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total subjects</div>
+                <div class="display-6">@Model.TotalSubjects</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total sessions</div>
+                <div class="display-6">@Model.TotalSessions</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total enrollments</div>
+                <div class="display-6">@Model.TotalEnrollments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Revenue collected</div>
+                <div class="h3 mb-0">@Model.TotalRevenueCollected.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xl-2">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Outstanding revenue</div>
+                <div class="h3 mb-0">@Model.OutstandingRevenue.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <section class="report-section">
+            <h2 class="h5 mb-3">Enrollments by course</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-end">Enrollments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.EnrollmentsByCourse)
+                    {
+                        <tr>
+                            <td>@item.CourseName</td>
+                            <td class="text-end">@item.EnrollmentCount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.EnrollmentsByCourse.Any())
+            {
+                <p class="text-muted mb-0">No enrollment data available.</p>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="report-section">
+            <h2 class="h5 mb-3">Sessions by subject</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th class="text-end">Sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.SessionsBySubject)
+                    {
+                        <tr>
+                            <td>@item.SubjectName</td>
+                            <td class="text-end">@item.SessionCount</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.SessionsBySubject.Any())
+            {
+                <p class="text-muted mb-0">No session data available.</p>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="report-section">
+            <h2 class="h5 mb-3">Instructor workload</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Instructor</th>
+                            <th class="text-end">Sessions</th>
+                            <th class="text-end">Seat capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.InstructorWorkload)
+                    {
+                        <tr>
+                            <td>@item.InstructorName</td>
+                            <td class="text-end">@item.SessionCount</td>
+                            <td class="text-end">@item.TotalSeats</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.InstructorWorkload.Any())
+            {
+                <p class="text-muted mb-0">No instructor workload data available.</p>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="report-section">
+            <h2 class="h5 mb-3">Revenue by course</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-end">Enrollments</th>
+                            <th class="text-end">Collected</th>
+                            <th class="text-end">Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.RevenueByCourse)
+                    {
+                        <tr>
+                            <td>@item.CourseName</td>
+                            <td class="text-end">@item.EnrollmentCount</td>
+                            <td class="text-end">@item.RevenueCollected.ToString("C")</td>
+                            <td class="text-end">@item.OutstandingRevenue.ToString("C")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.RevenueByCourse.Any())
+            {
+                <p class="text-muted mb-0">No revenue data available.</p>
+            }
+        </section>
+    </div>
+</div>

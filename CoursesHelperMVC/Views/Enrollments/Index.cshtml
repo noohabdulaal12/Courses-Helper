@@ -1,0 +1,76 @@
+@model IEnumerable<TraineeSession>
+
+@{
+    ViewData["Title"] = "Enrollments";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Enrollments</h1>
+        <p class="text-muted mb-0">Manage trainee registrations, payment amounts, and enrollment status.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create enrollment</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Trainee</th>
+                <th>Session</th>
+                <th>Status</th>
+                <th class="text-end">Amount paid</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var enrollment in Model)
+        {
+            <tr>
+                <td>@EnrollmentsController.FormatTrainee(enrollment.Trainee)</td>
+                <td>
+                    <div class="fw-semibold">@enrollment.CourseSession.Course.Name</div>
+                    <div class="text-muted small">
+                        @enrollment.CourseSession.StartingDate.ToString("yyyy-MM-dd")
+                        @enrollment.CourseSession.StartingTime.ToString(@"hh\:mm") - @enrollment.CourseSession.EndingTime.ToString(@"hh\:mm")
+                    </div>
+                </td>
+                <td>@enrollment.Status</td>
+                <td class="text-end">@enrollment.AmountPaid.ToString("C")</td>
+                <td class="text-end">
+                    <div class="btn-group" role="group" aria-label="Enrollment actions">
+                        <a asp-action="Details" asp-route-traineeId="@enrollment.TraineeId" asp-route-sessionId="@enrollment.SessionId" class="btn btn-sm btn-outline-secondary">Details</a>
+                        <a asp-action="Edit" asp-route-traineeId="@enrollment.TraineeId" asp-route-sessionId="@enrollment.SessionId" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Delete" asp-route-traineeId="@enrollment.TraineeId" asp-route-sessionId="@enrollment.SessionId" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center border rounded p-5">
+        <h2 class="h5">No enrollments yet</h2>
+        <p class="text-muted">Create the first enrollment to register a trainee in a course session.</p>
+        <a asp-action="Create" class="btn btn-primary">Create enrollment</a>
+    </div>
+}
