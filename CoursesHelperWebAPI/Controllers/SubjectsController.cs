@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.DTOs;
 using CoursesHelperWebAPI.Models.App;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoursesHelperWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SubjectsController : ControllerBase
     {
         private readonly AppDbContext _context;

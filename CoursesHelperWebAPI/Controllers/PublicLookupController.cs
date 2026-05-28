@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.DTOs;
 using CoursesHelperWebAPI.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoursesHelperWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class PublicLookupController : ControllerBase
     {
         private readonly AppDbContext _context;

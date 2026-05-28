@@ -2,11 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoursesHelperWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Coordinator,Admin")]
     public class ReportsController : ControllerBase
     {
         private readonly AppDbContext _context;

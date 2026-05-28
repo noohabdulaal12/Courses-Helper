@@ -4,11 +4,13 @@ using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.DTOs;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoursesHelperWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CertificationsController : ControllerBase
     {
         private readonly AppDbContext _context;
