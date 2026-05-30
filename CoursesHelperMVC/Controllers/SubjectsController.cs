@@ -1,11 +1,13 @@
 using CoursesHelperMVC.Models;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CoursesHelperMVC.Controllers;
 
+[Authorize(Roles = "Admin,Coordinator")]
 public class SubjectsController : Controller
 {
     private readonly AppDbContext _context;

@@ -1,0 +1,108 @@
+@model PublicLookupPageViewModel
+
+@{
+    ViewData["Title"] = "Public Certification Lookup";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Public certification lookup</h1>
+    <p class="text-muted mb-0">Verify a trainee certification status without signing in.</p>
+</div>
+
+<form asp-action="Index" method="post" class="mb-4">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label asp-for="Request.TraineeId" class="form-label"></label>
+            <input asp-for="Request.TraineeId" class="form-control" />
+            <span asp-validation-for="Request.TraineeId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Request.CertificationId" class="form-label"></label>
+            <input asp-for="Request.CertificationId" class="form-control" min="1" />
+            <span asp-validation-for="Request.CertificationId" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Lookup</button>
+        </div>
+    </div>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-warning" role="alert">@Model.ErrorMessage</div>
+}
+
+@if (Model.Result is not null)
+{
+    <div class="border rounded p-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+            <div>
+                <h2 class="h5 mb-1">@Model.Result.CertificationName</h2>
+                <p class="text-muted mb-0">
+                    Trainee: @Model.Result.TraineeName (@Model.Result.TraineeId)
+                </p>
+            </div>
+            @if (Model.Result.IsEligible)
+            {
+                <span class="badge bg-success">Eligible</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Not eligible</span>
+            }
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Certification ID</dt>
+            <dd class="col-sm-9">@Model.Result.CertificationId</dd>
+
+            <dt class="col-sm-3">Required courses</dt>
+            <dd class="col-sm-9">@Model.Result.TotalRequiredCourses</dd>
+
+            <dt class="col-sm-3">Completed courses</dt>
+            <dd class="col-sm-9">@Model.Result.CompletedCount</dd>
+        </dl>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h3 class="h6">Completed</h3>
+                @if (Model.Result.CompletedCourses.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var course in Model.Result.CompletedCourses)
+                        {
+                            <li>@course</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No completed courses found.</p>
+                }
+            </div>
+            <div class="col-md-6">
+                <h3 class="h6">Pending</h3>
+                @if (Model.Result.PendingCourses.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var course in Model.Result.PendingCourses)
+                        {
+                            <li>@course</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No pending courses.</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

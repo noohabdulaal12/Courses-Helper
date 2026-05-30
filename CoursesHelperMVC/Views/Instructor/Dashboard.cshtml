@@ -1,0 +1,24 @@
+@model InstructorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Instructor Dashboard";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Instructor dashboard</h1>
+    <p class="text-muted mb-0">Your assigned sessions and upcoming teaching schedule.</p>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="text-muted small">Assigned sessions</div>
+        <div class="display-6">@Model.AssignedSessionCount</div>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mb-4">
+    <a asp-action="MySessions" class="btn btn-primary">View my sessions</a>
+</div>
+
+<h2 class="h5 mb-3">Upcoming sessions</h2>
+<partial name="_InstructorSessionsTable" model="Model.UpcomingSessions" />

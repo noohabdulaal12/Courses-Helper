@@ -1,0 +1,36 @@
+@model IEnumerable<TraineeEnrollmentViewModel>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Course</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th class="text-end">Price</th>
+                <th class="text-end">Paid</th>
+                <th class="text-end">Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var enrollment in Model)
+        {
+            <tr>
+                <td>@enrollment.CourseName</td>
+                <td>@enrollment.StartingDate.ToString("yyyy-MM-dd")</td>
+                <td>@enrollment.StartingTime.ToString(@"hh\:mm") - @enrollment.EndingTime.ToString(@"hh\:mm")</td>
+                <td>@enrollment.Status</td>
+                <td class="text-end">@enrollment.CoursePrice.ToString("C")</td>
+                <td class="text-end">@enrollment.AmountPaid.ToString("C")</td>
+                <td class="text-end">@enrollment.RemainingBalance.ToString("C")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">No enrollments found.</p>
+}

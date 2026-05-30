@@ -1,0 +1,48 @@
+@model InstructorSessionTraineeViewModel
+
+@{
+    ViewData["Title"] = "Session Trainees";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">@Model.CourseName</h1>
+    <p class="text-muted mb-0">Enrolled trainees for this session.</p>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Trainee</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th class="text-end">Amount paid</th>
+                <th class="text-end">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var trainee in Model.Trainees)
+        {
+            <tr>
+                <td>@trainee.TraineeName</td>
+                <td>@trainee.Email</td>
+                <td>@trainee.Status</td>
+                <td class="text-end">@trainee.AmountPaid.ToString("C")</td>
+                <td class="text-end">
+                    <a asp-action="RecordAssessment" asp-route-sessionId="@Model.SessionId" asp-route-traineeId="@trainee.TraineeId" class="btn btn-sm btn-outline-primary">Record assessment</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Trainees.Any())
+{
+    <p class="text-muted mb-0">No trainees enrolled in this session.</p>
+}

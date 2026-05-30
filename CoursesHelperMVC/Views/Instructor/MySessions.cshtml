@@ -1,0 +1,12 @@
+@model IEnumerable<InstructorSessionViewModel>
+
+@{
+    ViewData["Title"] = "My Sessions";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">My sessions</h1>
+    <p class="text-muted mb-0">Sessions assigned to you as instructor.</p>
+</div>
+
+<partial name="_InstructorSessionsTable" model="Model" />

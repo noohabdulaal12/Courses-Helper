@@ -1,0 +1,17 @@
+@model IEnumerable<TraineeEnrollmentViewModel>
+
+@{
+    ViewData["Title"] = "My Enrollments";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">My enrollments</h1>
+    <p class="text-muted mb-0">Your course session status and payment balance.</p>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<partial name="_TraineeEnrollmentsTable" model="Model" />
