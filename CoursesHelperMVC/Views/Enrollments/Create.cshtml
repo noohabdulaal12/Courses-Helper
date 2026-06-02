@@ -1,0 +1,45 @@
+@model EnrollmentFormViewModel
+
+@{
+    ViewData["Title"] = "Create Enrollment";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Create enrollment</h1>
+    <p class="text-muted mb-0">Register a trainee in an available course session.</p>
+</div>
+
+<form asp-action="Create" method="post" class="enrollment-form">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="TraineeId" class="form-label"></label>
+            <select asp-for="TraineeId" asp-items="ViewBag.Trainees" class="form-select">
+                <option value="">Choose a trainee</option>
+            </select>
+            <span asp-validation-for="TraineeId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="SessionId" class="form-label"></label>
+            <select asp-for="SessionId" asp-items="ViewBag.CourseSessions" class="form-select">
+                <option value="">Choose a course session</option>
+            </select>
+            <span asp-validation-for="SessionId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="AmountPaid" class="form-label"></label>
+            <input asp-for="AmountPaid" class="form-control" min="0" step="0.01" />
+            <span asp-validation-for="AmountPaid" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,5 +1,6 @@
-﻿using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace CoursesHelperWebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ClassroomsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -17,27 +19,55 @@ namespace CoursesHelperWebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Classroom>>> GetClassrooms()
+        public async Task<ActionResult> GetClassrooms()
         {
-            return await _context.Classrooms.ToListAsync();
+            var classrooms = await _context.Classrooms
+                .Include(c => c.ClassroomType)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.TypeId,
+                    ClassroomType = c.ClassroomType.Name,
+                    Capacity = c.ClassroomType.Capacity,
+                    c.Description
+                })
+                .ToListAsync();
+
+            return Ok(classrooms);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Classroom>> GetClassroom(int id)
+        public async Task<ActionResult> GetClassroom(int id)
         {
-            var classroom = await _context.Classrooms.FindAsync(id);
+            var classroom = await _context.Classrooms
+                .Include(c => c.ClassroomType)
+                .Where(c => c.Id == id)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.TypeId,
+                    ClassroomType = c.ClassroomType.Name,
+                    Capacity = c.ClassroomType.Capacity,
+                    c.Description
+                })
+                .FirstOrDefaultAsync();
 
             if (classroom == null)
             {
                 return NotFound();
             }
 
-            return classroom;
+            return Ok(classroom);
         }
 
         [HttpPost]
         public async Task<ActionResult<Classroom>> CreateClassroom(Classroom classroom)
         {
+            if (!await _context.ClassroomsTypes.AnyAsync(t => t.Id == classroom.TypeId))
+            {
+                return BadRequest("Classroom type does not exist.");
+            }
+
             _context.Classrooms.Add(classroom);
             await _context.SaveChangesAsync();
 
@@ -50,10 +80,22 @@ namespace CoursesHelperWebAPI.Controllers
         {
             if (id != classroom.Id)
             {
-                return BadRequest();
+                return BadRequest("ID mismatch.");
             }
 
-            _context.Entry(classroom).State = EntityState.Modified;
+            var existing = await _context.Classrooms.FindAsync(id);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+
+            if (!await _context.ClassroomsTypes.AnyAsync(t => t.Id == classroom.TypeId))
+            {
+                return BadRequest("Classroom type does not exist.");
+            }
+
+            existing.TypeId = classroom.TypeId;
+            existing.Description = classroom.Description;
 
             await _context.SaveChangesAsync();
 

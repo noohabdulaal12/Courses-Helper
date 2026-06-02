@@ -1,0 +1,185 @@
+@model ReportsDashboardViewModel
+
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Training Coordinator Reports</h1>
+    <p class="text-muted mb-0">Read-only operational reports loaded from the Web API using JWT authentication.</p>
+</div>
+
+@if (ViewBag.ErrorMessage is string errorMessage)
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total enrollments</div>
+                <div class="display-6">@Model.TotalEnrollments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Revenue collected</div>
+                <div class="h3 mb-0">@Model.CollectedRevenue.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Outstanding revenue</div>
+                <div class="h3 mb-0">@Model.OutstandingRevenue.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Enrollments by course</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Completed</th>
+                            <th class="text-end">Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.EnrollmentsByCourse)
+                    {
+                        <tr>
+                            <td>@item.CourseName</td>
+                            <td class="text-end">@item.TotalEnrollments</td>
+                            <td class="text-end">@item.Completed</td>
+                            <td class="text-end">@item.Requested</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Enrollments by subject</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th class="text-end">Enrollments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.EnrollmentsBySubject)
+                    {
+                        <tr>
+                            <td>@item.SubjectName</td>
+                            <td class="text-end">@item.TotalEnrollments</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Instructor workload</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Instructor</th>
+                            <th class="text-end">Sessions</th>
+                            <th class="text-end">Seats</th>
+                            <th class="text-end">Enrollments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.InstructorWorkload)
+                    {
+                        <tr>
+                            <td>@item.InstructorName</td>
+                            <td class="text-end">@item.TotalSessions</td>
+                            <td class="text-end">@item.TotalAssignedSeats</td>
+                            <td class="text-end">@item.TotalEnrollments</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Revenue by course</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Course</th>
+                            <th class="text-end">Expected</th>
+                            <th class="text-end">Collected</th>
+                            <th class="text-end">Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.RevenueSummary)
+                    {
+                        <tr>
+                            <td>@item.CourseName</td>
+                            <td class="text-end">@item.ExpectedRevenue.ToString("C")</td>
+                            <td class="text-end">@item.CollectedRevenue.ToString("C")</td>
+                            <td class="text-end">@item.OutstandingRevenue.ToString("C")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section>
+            <h2 class="h5 mb-3">Certification completion</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Certification</th>
+                            <th class="text-end">Tracked trainees</th>
+                            <th class="text-end">Eligible trainees</th>
+                            <th class="text-end">Completion rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.CertificationCompletion)
+                    {
+                        <tr>
+                            <td>@item.CertificationName</td>
+                            <td class="text-end">@item.TotalTrackedTrainees</td>
+                            <td class="text-end">@item.EligibleTrainees</td>
+                            <td class="text-end">@item.CompletionRate.ToString("0.##")%</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>

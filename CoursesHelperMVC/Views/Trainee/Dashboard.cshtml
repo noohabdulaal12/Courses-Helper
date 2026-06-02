@@ -1,0 +1,46 @@
+@model TraineeDashboardViewModel
+
+@{
+    ViewData["Title"] = "Trainee Dashboard";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Trainee dashboard</h1>
+    <p class="text-muted mb-0">Your enrollments, balances, and certification progress.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Active enrollments</div>
+                <div class="display-6">@Model.ActiveEnrollmentCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Outstanding balance</div>
+                <div class="h3 mb-0">@Model.OutstandingBalance.ToString("C")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Eligible certifications</div>
+                <div class="h3 mb-0">@Model.EligibleCertificationCount / @Model.TotalCertificationCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a asp-action="AvailableSessions" class="btn btn-primary">Browse sessions</a>
+    <a asp-action="MyEnrollments" class="btn btn-outline-secondary">My enrollments</a>
+    <a asp-action="CertificationProgress" class="btn btn-outline-secondary">Certification progress</a>
+</div>
+
+<h2 class="h5 mb-3">Active enrollments</h2>
+<partial name="_TraineeEnrollmentsTable" model="Model.ActiveEnrollments" />

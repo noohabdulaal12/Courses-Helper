@@ -1,0 +1,22 @@
+@model SubjectFormViewModel
+
+@{
+    ViewData["Title"] = "Create Subject";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Create subject</h1>
+    <p class="text-muted mb-0">Add a subject area for grouping courses.</p>
+</div>
+
+<form asp-action="Create" method="post" class="subject-form">
+    <partial name="_SubjectForm" model="Model" />
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

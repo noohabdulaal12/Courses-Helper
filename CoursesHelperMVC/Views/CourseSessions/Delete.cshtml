@@ -1,0 +1,36 @@
+@model CourseSession
+
+@{
+    ViewData["Title"] = "Delete Course Session";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Delete session</h1>
+    <p class="text-muted mb-0">Confirm removing this scheduled session.</p>
+</div>
+
+<div class="alert alert-warning" role="alert">
+    Deleting the <strong>@Model.Course.Name</strong> session on @Model.StartingDate.ToString("yyyy-MM-dd") cannot be undone.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Instructor</dt>
+    <dd class="col-sm-9">@CourseSessionsController.FormatInstructor(Model.Instructor)</dd>
+
+    <dt class="col-sm-3">Classroom</dt>
+    <dd class="col-sm-9">@CourseSessionsController.FormatClassroom(Model.Classroom)</dd>
+
+    <dt class="col-sm-3">Time</dt>
+    <dd class="col-sm-9">@Model.StartingTime.ToString(@"hh\:mm") - @Model.EndingTime.ToString(@"hh\:mm")</dd>
+
+    <dt class="col-sm-3">Max seats</dt>
+    <dd class="col-sm-9">@Model.MaxSeats</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

@@ -1,0 +1,38 @@
+@model RecordAssessmentViewModel
+
+@{
+    ViewData["Title"] = "Record Assessment";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Record assessment</h1>
+    <p class="text-muted mb-0">Update trainee result for this assigned session.</p>
+</div>
+
+<form asp-action="RecordAssessment" method="post" class="session-form">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="SessionId" />
+    <input type="hidden" asp-for="TraineeId" />
+    <input type="hidden" asp-for="TraineeName" />
+    <input type="hidden" asp-for="CourseName" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Course</dt>
+        <dd class="col-sm-9">@Model.CourseName</dd>
+        <dt class="col-sm-3">Trainee</dt>
+        <dd class="col-sm-9">@Model.TraineeName</dd>
+    </dl>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save result</button>
+        <a asp-action="SessionTrainees" asp-route-id="@Model.SessionId" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

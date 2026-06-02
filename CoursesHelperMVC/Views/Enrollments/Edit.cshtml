@@ -1,0 +1,47 @@
+@model EnrollmentFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Enrollment";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Edit enrollment</h1>
+    <p class="text-muted mb-0">Update payment amount and enrollment status.</p>
+</div>
+
+<form asp-action="Edit" asp-route-traineeId="@Model.TraineeId" asp-route-sessionId="@Model.SessionId" method="post" class="enrollment-form">
+    <input type="hidden" asp-for="TraineeId" />
+    <input type="hidden" asp-for="SessionId" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <dl class="row">
+        <dt class="col-sm-3">Trainee</dt>
+        <dd class="col-sm-9">@ViewBag.TraineeName</dd>
+
+        <dt class="col-sm-3">Session</dt>
+        <dd class="col-sm-9">@ViewBag.SessionDetails</dd>
+    </dl>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="AmountPaid" class="form-label"></label>
+            <input asp-for="AmountPaid" class="form-control" min="0" step="0.01" />
+            <span asp-validation-for="AmountPaid" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Status" class="form-label"></label>
+            <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select"></select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

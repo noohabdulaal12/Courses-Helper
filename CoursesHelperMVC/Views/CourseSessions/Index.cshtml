@@ -1,0 +1,77 @@
+@model IEnumerable<CourseSession>
+
+@{
+    ViewData["Title"] = "Course Sessions";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Course sessions</h1>
+        <p class="text-muted mb-0">Manage scheduled course delivery, instructors, and classrooms.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create session</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Course</th>
+                <th>Instructor</th>
+                <th>Classroom</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th class="text-end">Max seats</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var session in Model)
+        {
+            <tr>
+                <td>
+                    <div class="fw-semibold">@session.Course.Name</div>
+                    <div class="text-muted small">@session.DayOfWeek</div>
+                </td>
+                <td>@CourseSessionsController.FormatInstructor(session.Instructor)</td>
+                <td>@CourseSessionsController.FormatClassroom(session.Classroom)</td>
+                <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
+                <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
+                <td class="text-end">@session.MaxSeats</td>
+                <td class="text-end">
+                    <div class="btn-group" role="group" aria-label="Session actions">
+                        <a asp-action="Details" asp-route-id="@session.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        <a asp-action="Edit" asp-route-id="@session.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@session.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center border rounded p-5">
+        <h2 class="h5">No course sessions yet</h2>
+        <p class="text-muted">Create the first session to start scheduling classes.</p>
+        <a asp-action="Create" class="btn btn-primary">Create session</a>
+    </div>
+}
