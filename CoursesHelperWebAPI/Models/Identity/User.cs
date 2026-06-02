@@ -15,5 +15,6 @@ namespace CoursesHelperWebAPI.Models.Identity
         public virtual ICollection<TraineeQualification> TraineeQualifications { get; set; } = [];
         public virtual ICollection<CourseSession> CourseSessions { get; set; } = [];
         public virtual ICollection<TraineeSession> TraineeSessions { get; set; } = [];
+        public virtual ICollection<Notification> Notifications { get; set; } = [];
     }
 }

@@ -1,4 +1,5 @@
 using CoursesHelperMVC.Models;
+using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
@@ -14,10 +15,12 @@ namespace CoursesHelperMVC.Controllers;
 public class EnrollmentsController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public EnrollmentsController(AppDbContext context)
+    public EnrollmentsController(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Index()
@@ -78,6 +81,13 @@ public class EnrollmentsController : Controller
 
         _context.TraineeSessions.Add(enrollment);
         await _context.SaveChangesAsync();
+
+        var createdEnrollment = await FindEnrollmentAsync(model.TraineeId, model.SessionId, asNoTracking: true);
+        if (createdEnrollment is not null)
+        {
+            await NotifyEnrollmentCreatedAsync(createdEnrollment);
+        }
+
         TempData["SuccessMessage"] = "Enrollment created successfully.";
 
         return RedirectToAction(nameof(Index));
@@ -138,10 +148,20 @@ public class EnrollmentsController : Controller
             return NotFound();
         }
 
+        var previousAmountPaid = enrollment.AmountPaid;
+        var previousStatus = enrollment.Status;
+
         enrollment.AmountPaid = model.AmountPaid;
         enrollment.Status = model.Status;
 
         await _context.SaveChangesAsync();
+
+        var updatedEnrollment = await FindEnrollmentAsync(traineeId, sessionId, asNoTracking: true);
+        if (updatedEnrollment is not null)
+        {
+            await NotifyEnrollmentUpdatedAsync(updatedEnrollment, previousStatus, previousAmountPaid);
+        }
+
         TempData["SuccessMessage"] = "Enrollment updated successfully.";
 
         return RedirectToAction(nameof(Index));
@@ -298,5 +318,55 @@ public class EnrollmentsController : Controller
     public static string FormatSession(CourseSession session)
     {
         return $"{session.Course.Name} on {session.StartingDate:yyyy-MM-dd} from {session.StartingTime:hh\\:mm} to {session.EndingTime:hh\\:mm}";
+    }
+
+    private async Task NotifyEnrollmentCreatedAsync(TraineeSession enrollment)
+    {
+        var sessionDetails = FormatSession(enrollment.CourseSession);
+        var traineeLink = Url.Action("MyEnrollments", "Trainee");
+        var instructorLink = Url.Action("SessionTrainees", "Instructor", new { id = enrollment.SessionId });
+
+        await _notificationService.NotifyUserAsync(
+            enrollment.TraineeId,
+            "Enrollment created",
+            $"A coordinator enrolled you in {sessionDetails}.",
+            traineeLink);
+
+        await _notificationService.NotifyUserAsync(
+            enrollment.CourseSession.InstructorId,
+            "Enrollment added",
+            $"{FormatTrainee(enrollment.Trainee)} was enrolled in {sessionDetails}.",
+            instructorLink);
+    }
+
+    private async Task NotifyEnrollmentUpdatedAsync(TraineeSession enrollment, Status previousStatus, decimal previousAmountPaid)
+    {
+        var sessionDetails = FormatSession(enrollment.CourseSession);
+        var traineeLink = Url.Action("MyEnrollments", "Trainee");
+        var instructorLink = Url.Action("SessionTrainees", "Instructor", new { id = enrollment.SessionId });
+
+        if (previousStatus != enrollment.Status)
+        {
+            await _notificationService.NotifyUserAsync(
+                enrollment.TraineeId,
+                "Enrollment status updated",
+                $"Your enrollment for {sessionDetails} is now {enrollment.Status}.",
+                traineeLink);
+
+            await _notificationService.NotifyUserAsync(
+                enrollment.CourseSession.InstructorId,
+                "Trainee status updated",
+                $"{FormatTrainee(enrollment.Trainee)} is now {enrollment.Status} for {sessionDetails}.",
+                instructorLink);
+        }
+
+        if (previousAmountPaid != enrollment.AmountPaid)
+        {
+            await _notificationService.NotifyUserAsync(
+                enrollment.TraineeId,
+                "Payment updated",
+                $"Your payment record for {sessionDetails} was updated to {enrollment.AmountPaid:C}.",
+                traineeLink);
+        }
     }
 }
