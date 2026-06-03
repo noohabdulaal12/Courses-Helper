@@ -24,7 +24,13 @@ namespace CoursesHelperMVC.Controllers
         // GET: Certifications
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Certifications.ToListAsync());
+            var certifications = await _context.Certifications
+                .Include(c => c.CertificationCourses)
+                .ThenInclude(cc => cc.Course)
+                .ThenInclude(c => c!.Subject)
+                .ToListAsync();
+
+            return View(certifications);
         }
 
         // GET: Certifications/Details/5
@@ -36,6 +42,9 @@ namespace CoursesHelperMVC.Controllers
             }
 
             var certification = await _context.Certifications
+                .Include(c => c.CertificationCourses)
+                .ThenInclude(cc => cc.Course)
+                .ThenInclude(c => c!.Subject)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (certification == null)
             {
@@ -127,6 +136,8 @@ namespace CoursesHelperMVC.Controllers
             }
 
             var certification = await _context.Certifications
+                .Include(c => c.CertificationCourses)
+                .ThenInclude(cc => cc.Course)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (certification == null)
             {

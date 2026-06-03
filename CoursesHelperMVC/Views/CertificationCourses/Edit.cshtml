@@ -1,29 +1,30 @@
-﻿@model CoursesHelperWebAPI.Models.App.CertificationCourse
+@model CoursesHelperWebAPI.Models.App.CertificationCourse
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Required Course";
 }
 
-<h1>Edit</h1>
-
-<h4>CertificationCourse</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CertificationId" />
-            <input type="hidden" asp-for="CourseId" />
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Edit Required Course</h1>
+        <p class="text-muted mb-0">This requirement is identified by its certification and course.</p>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="alert alert-info">
+    To change this requirement, remove it and add the correct required course.
 </div>
+
+<form asp-action="Edit" asp-route-certificationId="@Model.CertificationId" asp-route-courseId="@Model.CourseId">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="CertificationId" />
+    <input type="hidden" asp-for="CourseId" />
+    <div class="button-row">
+        <input type="submit" value="Save" class="btn btn-primary" />
+        <a asp-action="Index" asp-route-certificationId="@Model.CertificationId" class="btn btn-outline-secondary">Back to Required Courses</a>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

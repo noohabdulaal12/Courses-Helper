@@ -15,7 +15,7 @@
             @Html.DisplayNameFor(model => model.Trainee)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Trainee.Id)
+            @Html.DisplayFor(model => model.Trainee.Email)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Course)
@@ -25,10 +25,10 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete">
+    <form asp-action="Delete" asp-route-traineeId="@Model.TraineeId" asp-route-courseId="@Model.CourseId">
         <input type="hidden" asp-for="TraineeId" />
         <input type="hidden" asp-for="CourseId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
     </form>
 </div>

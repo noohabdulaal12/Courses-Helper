@@ -92,7 +92,9 @@ public class HomeController : Controller
                 [
                     new HomeOptionViewModel { Category = "Catalogue", Title = "Courses", Description = "Manage courses, prices, prerequisites, and course details.", Controller = "Courses", Action = "Index" },
                     new HomeOptionViewModel { Category = "Catalogue", Title = "Subjects", Description = "Organise courses by subject area.", Controller = "Subjects", Action = "Index" },
+                    new HomeOptionViewModel { Category = "Certification", Title = "Certifications", Description = "Manage certification tracks and required courses.", Controller = "Certifications", Action = "Index" },
                     new HomeOptionViewModel { Category = "Delivery", Title = "Sessions", Description = "Schedule course sessions, rooms, instructors, and seats.", Controller = "CourseSessions", Action = "Index" },
+                    new HomeOptionViewModel { Category = "Delivery", Title = "Classrooms", Description = "Manage rooms, classroom types, and seating capacity.", Controller = "Classrooms", Action = "Index" },
                     new HomeOptionViewModel { Category = "Teaching", Title = "Instructors", Description = "Manage instructor expertise, availability, and assigned sessions.", Controller = "Instructors", Action = "Index" },
                     new HomeOptionViewModel { Category = "Lifecycle", Title = "Enrollments", Description = "Update statuses, payments, and trainee registration records.", Controller = "Enrollments", Action = "Index" },
                     new HomeOptionViewModel { Category = "Payments", Title = "Payments", Description = "Track due dates, balances, and overdue course payments.", Controller = "Payments", Action = "Index" },

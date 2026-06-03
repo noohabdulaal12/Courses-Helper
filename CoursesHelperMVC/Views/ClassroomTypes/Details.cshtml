@@ -1,13 +1,19 @@
 ﻿@model CoursesHelperWebAPI.Models.App.ClassroomType
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Classroom Type Details";
 }
 
-<h1>Details</h1>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Delivery</p>
+        <h1>Classroom Type Details</h1>
+        <p class="text-muted mb-0">Review room category and capacity.</p>
+    </div>
+</div>
 
 <div>
-    <h4>ClassroomType</h4>
+    <h4>Classroom Type</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -31,6 +37,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
 </div>

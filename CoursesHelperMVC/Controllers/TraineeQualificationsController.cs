@@ -1,13 +1,10 @@
-﻿using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
+using CoursesHelperWebAPI.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CoursesHelperMVC.Controllers
 {
@@ -21,17 +18,18 @@ namespace CoursesHelperMVC.Controllers
             _context = context;
         }
 
-        // GET: TraineeQualifications
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.TraineeQualifications.Include(t => t.Course).Include(t => t.Trainee);
-            return View(await appDbContext.ToListAsync());
+            var qualifications = _context.TraineeQualifications
+                .Include(t => t.Course)
+                .Include(t => t.Trainee);
+
+            return View(await qualifications.ToListAsync());
         }
 
-        // GET: TraineeQualifications/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string traineeId, int? courseId)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
                 return NotFound();
             }
@@ -39,7 +37,8 @@ namespace CoursesHelperMVC.Controllers
             var traineeQualification = await _context.TraineeQualifications
                 .Include(t => t.Course)
                 .Include(t => t.Trainee)
-                .FirstOrDefaultAsync(m => m.TraineeId == id);
+                .FirstOrDefaultAsync(m => m.TraineeId == traineeId && m.CourseId == courseId);
+
             if (traineeQualification == null)
             {
                 return NotFound();
@@ -48,58 +47,57 @@ namespace CoursesHelperMVC.Controllers
             return View(traineeQualification);
         }
 
-        // GET: TraineeQualifications/Create
         public IActionResult Create()
         {
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name");
-            ViewData["TraineeId"] = new SelectList(_context.Users, "Id", "Id");
+            PopulateSelectLists();
             return View();
         }
 
-        // POST: TraineeQualifications/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TraineeId,CourseId")] TraineeQualification traineeQualification)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(traineeQualification);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var alreadyExists = await TraineeQualificationExistsAsync(traineeQualification.TraineeId, traineeQualification.CourseId);
+                if (alreadyExists)
+                {
+                    ModelState.AddModelError(string.Empty, "This trainee already has this course qualification.");
+                }
+                else
+                {
+                    _context.Add(traineeQualification);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", traineeQualification.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Users, "Id", "Id", traineeQualification.TraineeId);
+
+            PopulateSelectLists(traineeQualification.TraineeId, traineeQualification.CourseId);
             return View(traineeQualification);
         }
 
-        // GET: TraineeQualifications/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string traineeId, int? courseId)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
                 return NotFound();
             }
 
-            var traineeQualification = await _context.TraineeQualifications.FindAsync(id);
+            var traineeQualification = await _context.TraineeQualifications.FindAsync(traineeId, courseId.Value);
             if (traineeQualification == null)
             {
                 return NotFound();
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", traineeQualification.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Users, "Id", "Id", traineeQualification.TraineeId);
+
+            PopulateSelectLists(traineeQualification.TraineeId, traineeQualification.CourseId);
             return View(traineeQualification);
         }
 
-        // POST: TraineeQualifications/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("TraineeId,CourseId")] TraineeQualification traineeQualification)
+        public async Task<IActionResult> Edit(string traineeId, int courseId, [Bind("TraineeId,CourseId")] TraineeQualification traineeQualification)
         {
-            if (id != traineeQualification.TraineeId)
+            if (traineeId != traineeQualification.TraineeId || courseId != traineeQualification.CourseId)
             {
                 return NotFound();
             }
@@ -113,26 +111,24 @@ namespace CoursesHelperMVC.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TraineeQualificationExists(traineeQualification.TraineeId))
+                    if (!await TraineeQualificationExistsAsync(traineeQualification.TraineeId, traineeQualification.CourseId))
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", traineeQualification.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Users, "Id", "Id", traineeQualification.TraineeId);
+
+            PopulateSelectLists(traineeQualification.TraineeId, traineeQualification.CourseId);
             return View(traineeQualification);
         }
 
-        // GET: TraineeQualifications/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string traineeId, int? courseId)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
                 return NotFound();
             }
@@ -140,7 +136,8 @@ namespace CoursesHelperMVC.Controllers
             var traineeQualification = await _context.TraineeQualifications
                 .Include(t => t.Course)
                 .Include(t => t.Trainee)
-                .FirstOrDefaultAsync(m => m.TraineeId == id);
+                .FirstOrDefaultAsync(m => m.TraineeId == traineeId && m.CourseId == courseId);
+
             if (traineeQualification == null)
             {
                 return NotFound();
@@ -149,12 +146,11 @@ namespace CoursesHelperMVC.Controllers
             return View(traineeQualification);
         }
 
-        // POST: TraineeQualifications/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(string traineeId, int courseId)
         {
-            var traineeQualification = await _context.TraineeQualifications.FindAsync(id);
+            var traineeQualification = await _context.TraineeQualifications.FindAsync(traineeId, courseId);
             if (traineeQualification != null)
             {
                 _context.TraineeQualifications.Remove(traineeQualification);
@@ -164,9 +160,15 @@ namespace CoursesHelperMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TraineeQualificationExists(string id)
+        private void PopulateSelectLists(string? selectedTraineeId = null, int? selectedCourseId = null)
         {
-            return _context.TraineeQualifications.Any(e => e.TraineeId == id);
+            ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", selectedCourseId);
+            ViewData["TraineeId"] = new SelectList(_context.Users.Where(u => u.UserType == UserType.Trainee), "Id", "Email", selectedTraineeId);
+        }
+
+        private Task<bool> TraineeQualificationExistsAsync(string traineeId, int courseId)
+        {
+            return _context.TraineeQualifications.AnyAsync(e => e.TraineeId == traineeId && e.CourseId == courseId);
         }
     }
 }

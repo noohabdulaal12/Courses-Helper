@@ -156,6 +156,7 @@ namespace CoursesHelperMVC.Controllers
 
                 if (isUsedBySession)
                 {
+                    await _context.Entry(classroom).Reference(c => c.ClassroomType).LoadAsync();
                     ModelState.AddModelError(string.Empty, "This classroom cannot be deleted because it is currently assigned to one or more course sessions.");
                     return View("Delete", classroom);
                 }

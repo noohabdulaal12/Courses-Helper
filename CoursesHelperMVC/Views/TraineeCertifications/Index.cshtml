@@ -1,14 +1,18 @@
 ﻿@model IEnumerable<CoursesHelperWebAPI.Models.App.TraineeCertification>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Trainee Certifications";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Trainee Certifications</h1>
+        <p class="text-muted mb-0">Review certification tracks assigned to trainees.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Assign Certification</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -25,16 +29,24 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Trainee.Id)
+                @Html.DisplayFor(modelItem => item.Trainee.Email)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Certification.Name)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                <div class="table-actions">
+                    <a asp-action="Details" asp-route-traineeId="@item.TraineeId" asp-route-certificationId="@item.CertificationId" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <a asp-action="Edit" asp-route-traineeId="@item.TraineeId" asp-route-certificationId="@item.CertificationId" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a asp-action="Delete" asp-route-traineeId="@item.TraineeId" asp-route-certificationId="@item.CertificationId" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
             </td>
+        </tr>
+}
+@if (!Model.Any())
+{
+        <tr>
+            <td colspan="3" class="text-center text-muted py-4">No trainee certifications have been assigned yet.</td>
         </tr>
 }
     </tbody>

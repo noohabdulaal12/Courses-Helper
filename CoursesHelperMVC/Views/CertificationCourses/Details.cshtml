@@ -1,30 +1,24 @@
-﻿@model CoursesHelperWebAPI.Models.App.CertificationCourse
+@model CoursesHelperWebAPI.Models.App.CertificationCourse
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Required Course Details";
 }
 
-<h1>Details</h1>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Required Course Details</h1>
+        <p class="text-muted mb-0">Review the certification-course requirement.</p>
+    </div>
+    <div class="table-actions">
+        <a asp-controller="Certifications" asp-action="Details" asp-route-id="@Model.CertificationId" class="btn btn-outline-secondary">Back to Certification</a>
+        <a asp-action="Delete" asp-route-certificationId="@Model.CertificationId" asp-route-courseId="@Model.CourseId" class="btn btn-outline-danger">Remove</a>
+    </div>
+</div>
 
-<div>
-    <h4>CertificationCourse</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Certification)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Certification.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Course)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Course.Name)
-        </dd>
-    </dl>
-</div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl class="row">
+    <dt class="col-sm-3">Certification</dt>
+    <dd class="col-sm-9">@(Model.Certification?.Name ?? "Unknown certification")</dd>
+    <dt class="col-sm-3">Course</dt>
+    <dd class="col-sm-9">@(Model.Course?.Name ?? "Unknown course")</dd>
+</dl>

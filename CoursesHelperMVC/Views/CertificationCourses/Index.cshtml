@@ -1,40 +1,57 @@
-﻿@model IEnumerable<CoursesHelperWebAPI.Models.App.CertificationCourse>
+@model IEnumerable<CoursesHelperWebAPI.Models.App.CertificationCourse>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Required Courses";
+    var certificationId = ViewData["CertificationId"] as int?;
+    var certificationName = ViewData["CertificationName"] as string;
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>@(string.IsNullOrWhiteSpace(certificationName) ? "Required Courses" : $"{certificationName} Required Courses")</h1>
+        <p class="text-muted mb-0">Manage which courses trainees must complete for certification tracks.</p>
+    </div>
+    <div class="table-actions">
+        @if (certificationId.HasValue)
+        {
+            <a asp-controller="Certifications" asp-action="Details" asp-route-id="@certificationId.Value" class="btn btn-outline-secondary">Back to Certification</a>
+            <a asp-action="Create" asp-route-certificationId="@certificationId.Value" class="btn btn-primary">Add Required Course</a>
+        }
+        else
+        {
+            <a asp-controller="Certifications" asp-action="Index" class="btn btn-outline-secondary">Certifications</a>
+            <a asp-action="Create" class="btn btn-primary">Assign Course</a>
+        }
+    </div>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Certification)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Course)
-            </th>
+            <th>Certification</th>
+            <th>Course</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model)
+{
         <tr>
+            <td class="fw-semibold">@(item.Certification?.Name ?? "Unknown certification")</td>
+            <td>@(item.Course?.Name ?? "Unknown course")</td>
             <td>
-                @Html.DisplayFor(modelItem => item.Certification.Name)
+                <div class="table-actions">
+                    <a asp-action="Details" asp-route-certificationId="@item.CertificationId" asp-route-courseId="@item.CourseId" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <a asp-action="Delete" asp-route-certificationId="@item.CertificationId" asp-route-courseId="@item.CourseId" class="btn btn-sm btn-outline-danger">Remove</a>
+                </div>
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Course.Name)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
+        </tr>
+}
+@if (!Model.Any())
+{
+        <tr>
+            <td colspan="3" class="text-center text-muted py-4">No required courses have been assigned yet.</td>
         </tr>
 }
     </tbody>

@@ -22,16 +22,30 @@ namespace CoursesHelperMVC.Controllers
         }
 
         // GET: CertificationCourses
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? certificationId)
         {
-            var appDbContext = _context.CertificationCourses.Include(c => c.Certification).Include(c => c.Course);
-            return View(await appDbContext.ToListAsync());
+            var certificationCourses = _context.CertificationCourses
+                .Include(c => c.Certification)
+                .Include(c => c.Course)
+                .AsQueryable();
+
+            if (certificationId.HasValue)
+            {
+                certificationCourses = certificationCourses.Where(c => c.CertificationId == certificationId.Value);
+                ViewData["CertificationId"] = certificationId.Value;
+                ViewData["CertificationName"] = await _context.Certifications
+                    .Where(c => c.Id == certificationId.Value)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync();
+            }
+
+            return View(await certificationCourses.ToListAsync());
         }
 
         // GET: CertificationCourses/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? certificationId, int? courseId)
         {
-            if (id == null)
+            if (certificationId == null || courseId == null)
             {
                 return NotFound();
             }
@@ -39,7 +53,7 @@ namespace CoursesHelperMVC.Controllers
             var certificationCourse = await _context.CertificationCourses
                 .Include(c => c.Certification)
                 .Include(c => c.Course)
-                .FirstOrDefaultAsync(m => m.CertificationId == id);
+                .FirstOrDefaultAsync(m => m.CertificationId == certificationId && m.CourseId == courseId);
             if (certificationCourse == null)
             {
                 return NotFound();
@@ -49,11 +63,11 @@ namespace CoursesHelperMVC.Controllers
         }
 
         // GET: CertificationCourses/Create
-        public IActionResult Create()
+        public IActionResult Create(int? certificationId)
         {
-            ViewData["CertificationId"] = new SelectList(_context.Certifications, "Id", "Name");
+            ViewData["CertificationId"] = new SelectList(_context.Certifications, "Id", "Name", certificationId);
             ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name");
-            return View();
+            return View(new CertificationCourse { CertificationId = certificationId ?? 0, CourseId = 0 });
         }
 
         // POST: CertificationCourses/Create
@@ -63,22 +77,19 @@ namespace CoursesHelperMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CertificationId,CourseId")] CertificationCourse certificationCourse)
         {
-            bool alreadyExists = await _context.CertificationCourses.AnyAsync(cc => cc.CertificationId == certificationCourse.CertificationId
-            && cc.CourseId == certificationCourse.CourseId);
-            
             if (ModelState.IsValid)
             {
-
-                if (!alreadyExists)
-                {
-                    _context.Add(certificationCourse);
-                }
-                else
+                var alreadyExists = await CertificationCourseExistsAsync(certificationCourse.CertificationId, certificationCourse.CourseId);
+                if (alreadyExists)
                 {
                     ModelState.AddModelError(string.Empty, "This course is already assigned to this certification.");
                 }
-
-                await _context.SaveChangesAsync();
+                else
+                {
+                    _context.Add(certificationCourse);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index), new { certificationId = certificationCourse.CertificationId });
+                }
             }
             ViewData["CertificationId"] = new SelectList(_context.Certifications, "Id", "Name", certificationCourse.CertificationId);
             ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", certificationCourse.CourseId);
@@ -86,14 +97,14 @@ namespace CoursesHelperMVC.Controllers
         }
 
         // GET: CertificationCourses/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? certificationId, int? courseId)
         {
-            if (id == null)
+            if (certificationId == null || courseId == null)
             {
                 return NotFound();
             }
 
-            var certificationCourse = await _context.CertificationCourses.FindAsync(id);
+            var certificationCourse = await _context.CertificationCourses.FindAsync(certificationId.Value, courseId.Value);
             if (certificationCourse == null)
             {
                 return NotFound();
@@ -108,9 +119,9 @@ namespace CoursesHelperMVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CertificationId,CourseId")] CertificationCourse certificationCourse)
+        public async Task<IActionResult> Edit(int certificationId, int courseId, [Bind("CertificationId,CourseId")] CertificationCourse certificationCourse)
         {
-            if (id != certificationCourse.CertificationId)
+            if (certificationId != certificationCourse.CertificationId || courseId != certificationCourse.CourseId)
             {
                 return NotFound();
             }
@@ -124,7 +135,7 @@ namespace CoursesHelperMVC.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CertificationCourseExists(certificationCourse.CertificationId))
+                    if (!await CertificationCourseExistsAsync(certificationCourse.CertificationId, certificationCourse.CourseId))
                     {
                         return NotFound();
                     }
@@ -133,7 +144,7 @@ namespace CoursesHelperMVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { certificationId = certificationCourse.CertificationId });
             }
             ViewData["CertificationId"] = new SelectList(_context.Certifications, "Id", "Name", certificationCourse.CertificationId);
             ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "Name", certificationCourse.CourseId);
@@ -141,9 +152,9 @@ namespace CoursesHelperMVC.Controllers
         }
 
         // GET: CertificationCourses/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? certificationId, int? courseId)
         {
-            if (id == null)
+            if (certificationId == null || courseId == null)
             {
                 return NotFound();
             }
@@ -151,7 +162,7 @@ namespace CoursesHelperMVC.Controllers
             var certificationCourse = await _context.CertificationCourses
                 .Include(c => c.Certification)
                 .Include(c => c.Course)
-                .FirstOrDefaultAsync(m => m.CertificationId == id);
+                .FirstOrDefaultAsync(m => m.CertificationId == certificationId && m.CourseId == courseId);
             if (certificationCourse == null)
             {
                 return NotFound();
@@ -163,21 +174,21 @@ namespace CoursesHelperMVC.Controllers
         // POST: CertificationCourses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int certificationId, int courseId)
         {
-            var certificationCourse = await _context.CertificationCourses.FindAsync(id);
+            var certificationCourse = await _context.CertificationCourses.FindAsync(certificationId, courseId);
             if (certificationCourse != null)
             {
                 _context.CertificationCourses.Remove(certificationCourse);
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { certificationId });
         }
 
-        private bool CertificationCourseExists(int id)
+        private Task<bool> CertificationCourseExistsAsync(int certificationId, int courseId)
         {
-            return _context.CertificationCourses.Any(e => e.CertificationId == id);
+            return _context.CertificationCourses.AnyAsync(e => e.CertificationId == certificationId && e.CourseId == courseId);
         }
     }
 }

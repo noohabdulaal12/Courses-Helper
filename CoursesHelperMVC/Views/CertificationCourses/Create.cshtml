@@ -1,34 +1,42 @@
-﻿@model CoursesHelperWebAPI.Models.App.CertificationCourse
+@model CoursesHelperWebAPI.Models.App.CertificationCourse
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add Required Course";
 }
 
-<h1>Create</h1>
-
-<h4>CertificationCourse</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CertificationId" class="control-label"></label>
-                <select asp-for="CertificationId" class ="form-control" asp-items="ViewBag.CertificationId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="CourseId" class="control-label"></label>
-                <select asp-for="CourseId" class ="form-control" asp-items="ViewBag.CourseId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Add Required Course</h1>
+        <p class="text-muted mb-0">Assign a course that trainees must complete for a certification track.</p>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group mb-3">
+                <label asp-for="CertificationId" class="form-label">Certification</label>
+                <select asp-for="CertificationId" class="form-control" asp-items="ViewBag.CertificationId"></select>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="CourseId" class="form-label">Course</label>
+                <select asp-for="CourseId" class="form-control" asp-items="ViewBag.CourseId"></select>
+            </div>
+            <div class="form-group button-row">
+                <input type="submit" value="Add Required Course" class="btn btn-primary" />
+                @if (Model.CertificationId > 0)
+                {
+                    <a asp-action="Index" asp-route-certificationId="@Model.CertificationId" class="btn btn-outline-secondary">Back to Required Courses</a>
+                }
+                else
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to Required Courses</a>
+                }
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

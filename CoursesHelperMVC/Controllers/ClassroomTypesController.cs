@@ -144,6 +144,13 @@ namespace CoursesHelperMVC.Controllers
             var classroomType = await _context.ClassroomsTypes.FindAsync(id);
             if (classroomType != null)
             {
+                var isUsedByClassroom = await _context.Classrooms.AnyAsync(c => c.TypeId == id);
+                if (isUsedByClassroom)
+                {
+                    ModelState.AddModelError(string.Empty, "This classroom type cannot be deleted because one or more classrooms use it.");
+                    return View("Delete", classroomType);
+                }
+
                 _context.ClassroomsTypes.Remove(classroomType);
             }
 
