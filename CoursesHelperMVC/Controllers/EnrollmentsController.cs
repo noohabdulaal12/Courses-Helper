@@ -19,15 +19,18 @@ public class EnrollmentsController : Controller
     private readonly AppDbContext _context;
     private readonly INotificationService _notificationService;
     private readonly IHubContext<EnrollmentHub> _hubContext;
+    private readonly ICertificationAssignmentService _certificationAssignmentService;
 
     public EnrollmentsController(
         AppDbContext context,
         INotificationService notificationService,
-        IHubContext<EnrollmentHub> hubContext)
+        IHubContext<EnrollmentHub> hubContext,
+        ICertificationAssignmentService certificationAssignmentService)
     {
         _context = context;
         _notificationService = notificationService;
         _hubContext = hubContext;
+        _certificationAssignmentService = certificationAssignmentService;
     }
 
     public async Task<IActionResult> Index()
@@ -295,6 +298,8 @@ public class EnrollmentsController : Controller
                     CourseId = courseId
                 });
             }
+
+            await _certificationAssignmentService.AutoAssignCompletedCertificationsAsync(enrollment.TraineeId, courseId);
 
             return;
         }

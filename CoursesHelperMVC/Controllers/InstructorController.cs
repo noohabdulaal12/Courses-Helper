@@ -18,12 +18,18 @@ public class InstructorController : Controller
     private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly INotificationService _notificationService;
+    private readonly ICertificationAssignmentService _certificationAssignmentService;
 
-    public InstructorController(AppDbContext context, UserManager<User> userManager, INotificationService notificationService)
+    public InstructorController(
+        AppDbContext context,
+        UserManager<User> userManager,
+        INotificationService notificationService,
+        ICertificationAssignmentService certificationAssignmentService)
     {
         _context = context;
         _userManager = userManager;
         _notificationService = notificationService;
+        _certificationAssignmentService = certificationAssignmentService;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -157,6 +163,8 @@ public class InstructorController : Controller
                     CourseId = courseId
                 });
             }
+
+            await _certificationAssignmentService.AutoAssignCompletedCertificationsAsync(model.TraineeId, courseId);
         }
         else if (previousStatus == Status.Completed)
         {

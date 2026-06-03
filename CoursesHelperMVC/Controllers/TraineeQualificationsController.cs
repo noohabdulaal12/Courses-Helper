@@ -1,4 +1,5 @@
 using CoursesHelperWebAPI.Data;
+using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,12 @@ namespace CoursesHelperMVC.Controllers
     public class TraineeQualificationsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ICertificationAssignmentService _certificationAssignmentService;
 
-        public TraineeQualificationsController(AppDbContext context)
+        public TraineeQualificationsController(AppDbContext context, ICertificationAssignmentService certificationAssignmentService)
         {
             _context = context;
+            _certificationAssignmentService = certificationAssignmentService;
         }
 
         public async Task<IActionResult> Index()
@@ -68,6 +71,9 @@ namespace CoursesHelperMVC.Controllers
                 else
                 {
                     _context.Add(traineeQualification);
+                    await _certificationAssignmentService.AutoAssignCompletedCertificationsAsync(
+                        traineeQualification.TraineeId,
+                        traineeQualification.CourseId);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
