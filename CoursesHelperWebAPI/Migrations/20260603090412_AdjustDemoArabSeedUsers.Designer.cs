@@ -4,6 +4,7 @@ using CoursesHelperWebAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CoursesHelperWebAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260603090412_AdjustDemoArabSeedUsers")]
+    partial class AdjustDemoArabSeedUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -976,16 +979,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "instructor-user2",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "INSTRUCTOR_STAMP2",
-                            Email = "fatima.alharbi@uni.edu",
+                            Email = "teacher2@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "FATIMA.ALHARBI@UNI.EDU",
-                            NormalizedUserName = "FATIMA.ALHARBI@UNI.EDU",
+                            NormalizedEmail = "TEACHER2@UNI.EDU",
+                            NormalizedUserName = "TEACHER2@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_INST2",
                             TwoFactorEnabled = false,
-                            UserName = "fatima.alharbi@uni.edu",
+                            UserName = "teacher2@uni.edu",
                             UserType = 2
                         },
                         new
@@ -993,16 +996,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "instructor-user3",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "INSTRUCTOR_STAMP3",
-                            Email = "khalid.almansour@uni.edu",
+                            Email = "teacher3@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "KHALID.ALMANSOUR@UNI.EDU",
-                            NormalizedUserName = "KHALID.ALMANSOUR@UNI.EDU",
+                            NormalizedEmail = "TEACHER3@UNI.EDU",
+                            NormalizedUserName = "TEACHER3@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_INST3",
                             TwoFactorEnabled = false,
-                            UserName = "khalid.almansour@uni.edu",
+                            UserName = "teacher3@uni.edu",
                             UserType = 2
                         },
                         new
@@ -1044,16 +1047,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "trainee-user3",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "TRAINEE_STAMP3",
-                            Email = "aisha.alqahtani@uni.edu",
+                            Email = "student3@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "AISHA.ALQAHTANI@UNI.EDU",
-                            NormalizedUserName = "AISHA.ALQAHTANI@UNI.EDU",
+                            NormalizedEmail = "STUDENT3@UNI.EDU",
+                            NormalizedUserName = "STUDENT3@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_TRAINEE3",
                             TwoFactorEnabled = false,
-                            UserName = "aisha.alqahtani@uni.edu",
+                            UserName = "student3@uni.edu",
                             UserType = 1
                         },
                         new
@@ -1061,16 +1064,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "trainee-user4",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "TRAINEE_STAMP4",
-                            Email = "mohammed.alfarsi@uni.edu",
+                            Email = "student4@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "MOHAMMED.ALFARSI@UNI.EDU",
-                            NormalizedUserName = "MOHAMMED.ALFARSI@UNI.EDU",
+                            NormalizedEmail = "STUDENT4@UNI.EDU",
+                            NormalizedUserName = "STUDENT4@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_TRAINEE4",
                             TwoFactorEnabled = false,
-                            UserName = "mohammed.alfarsi@uni.edu",
+                            UserName = "student4@uni.edu",
                             UserType = 1
                         },
                         new
@@ -1078,16 +1081,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "trainee-user5",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "TRAINEE_STAMP5",
-                            Email = "layla.alnajjar@uni.edu",
+                            Email = "student5@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "LAYLA.ALNAJJAR@UNI.EDU",
-                            NormalizedUserName = "LAYLA.ALNAJJAR@UNI.EDU",
+                            NormalizedEmail = "STUDENT5@UNI.EDU",
+                            NormalizedUserName = "STUDENT5@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_TRAINEE5",
                             TwoFactorEnabled = false,
-                            UserName = "layla.alnajjar@uni.edu",
+                            UserName = "student5@uni.edu",
                             UserType = 1
                         },
                         new
@@ -1095,16 +1098,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "trainee-user6",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "TRAINEE_STAMP6",
-                            Email = "youssef.alhassan@uni.edu",
+                            Email = "student6@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "YOUSSEF.ALHASSAN@UNI.EDU",
-                            NormalizedUserName = "YOUSSEF.ALHASSAN@UNI.EDU",
+                            NormalizedEmail = "STUDENT6@UNI.EDU",
+                            NormalizedUserName = "STUDENT6@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_TRAINEE6",
                             TwoFactorEnabled = false,
-                            UserName = "youssef.alhassan@uni.edu",
+                            UserName = "student6@uni.edu",
                             UserType = 1
                         },
                         new
@@ -1112,16 +1115,16 @@ namespace CoursesHelperWebAPI.Migrations
                             Id = "trainee-user7",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "TRAINEE_STAMP7",
-                            Email = "noura.alsaleh@uni.edu",
+                            Email = "student7@uni.edu",
                             EmailConfirmed = true,
                             LockoutEnabled = true,
-                            NormalizedEmail = "NOURA.ALSALEH@UNI.EDU",
-                            NormalizedUserName = "NOURA.ALSALEH@UNI.EDU",
+                            NormalizedEmail = "STUDENT7@UNI.EDU",
+                            NormalizedUserName = "STUDENT7@UNI.EDU",
                             PasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STAMP_TRAINEE7",
                             TwoFactorEnabled = false,
-                            UserName = "noura.alsaleh@uni.edu",
+                            UserName = "student7@uni.edu",
                             UserType = 1
                         });
                 });
