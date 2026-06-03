@@ -35,7 +35,7 @@ public class NotificationService : INotificationService
     {
         var coordinatorIds = await _context.Users
             .AsNoTracking()
-            .Where(u => u.UserType == UserType.Coordinator || u.UserType == UserType.Admin)
+            .Where(u => u.UserType == UserType.Coordinator)
             .Select(u => u.Id)
             .ToListAsync();
 

@@ -1,4 +1,5 @@
 using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.Hubs;
 using CoursesHelperWebAPI.Models.Identity;
 using CoursesHelperMVC.Services;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -53,5 +55,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapHub<EnrollmentHub>("/enrollmentHub");
 
 app.Run();

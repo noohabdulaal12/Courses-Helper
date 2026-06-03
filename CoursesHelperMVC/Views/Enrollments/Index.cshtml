@@ -51,7 +51,7 @@
                         @enrollment.CourseSession.StartingTime.ToString(@"hh\:mm") - @enrollment.CourseSession.EndingTime.ToString(@"hh\:mm")
                     </div>
                 </td>
-                <td>@enrollment.Status</td>
+                <td><partial name="_StatusBadge" model="enrollment.Status" /></td>
                 <td class="text-end">@enrollment.AmountPaid.ToString("C")</td>
                 <td class="text-end">
                     <div class="btn-group" role="group" aria-label="Enrollment actions">
@@ -68,7 +68,7 @@
 
 @if (!Model.Any())
 {
-    <div class="text-center border rounded p-5">
+    <div class="empty-state">
         <h2 class="h5">No enrollments yet</h2>
         <p class="text-muted">Create the first enrollment to register a trainee in a course session.</p>
         <a asp-action="Create" class="btn btn-primary">Create enrollment</a>

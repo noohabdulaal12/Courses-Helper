@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.DTOs;
 using CoursesHelperWebAPI.Models.App;
+using CoursesHelperWebAPI.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CoursesHelperWebAPI.Controllers
@@ -84,37 +86,55 @@ namespace CoursesHelperWebAPI.Controllers
 
         // POST: api/CourseSessions
         [HttpPost]
-        public async Task<ActionResult> CreateSession(CourseSession session)
+        public async Task<ActionResult> CreateSession(CreateCourseSessionDto dto)
         {
-            var course = await _context.Courses.FindAsync(session.CourseId);
+            var course = await _context.Courses.FindAsync(dto.CourseId);
             if (course == null)
                 return BadRequest("Course does not exist.");
 
-            var instructor = await _context.Users.FindAsync(session.InstructorId);
-            if (instructor == null)
+            var instructor = await _context.Users.FindAsync(dto.InstructorId);
+            if (instructor == null || instructor.UserType != UserType.Instructor)
                 return BadRequest("Instructor does not exist.");
 
-            var classroom = await _context.Classrooms.FindAsync(session.ClassroomId);
+            var classroom = await _context.Classrooms.FindAsync(dto.ClassroomId);
             if (classroom == null)
                 return BadRequest("Classroom does not exist.");
 
             bool classroomConflict = await _context.CourseSessions.AnyAsync(s =>
-                s.ClassroomId == session.ClassroomId &&
-                s.StartingDate == session.StartingDate &&
-                session.StartingTime < s.EndingTime &&
-                session.EndingTime > s.StartingTime);
+                s.ClassroomId == dto.ClassroomId &&
+                s.StartingDate == dto.StartingDate &&
+                dto.StartingTime < s.EndingTime &&
+                dto.EndingTime > s.StartingTime);
 
             if (classroomConflict)
                 return BadRequest("Classroom is already booked at that time.");
 
             bool instructorConflict = await _context.CourseSessions.AnyAsync(s =>
-                s.InstructorId == session.InstructorId &&
-                s.StartingDate == session.StartingDate &&
-                session.StartingTime < s.EndingTime &&
-                session.EndingTime > s.StartingTime);
+                s.InstructorId == dto.InstructorId &&
+                s.StartingDate == dto.StartingDate &&
+                dto.StartingTime < s.EndingTime &&
+                dto.EndingTime > s.StartingTime);
 
             if (instructorConflict)
                 return BadRequest("Instructor is already booked at that time.");
+
+            if (!await InstructorCanTeachAsync(dto.InstructorId, dto.CourseId))
+                return BadRequest("Instructor is not qualified to teach this course.");
+
+            if (!await InstructorIsAvailableAsync(dto.InstructorId, dto.StartingDate, dto.StartingTime, dto.EndingTime))
+                return BadRequest("Instructor is not available during the selected time.");
+
+            var session = new CourseSession
+            {
+                CourseId = dto.CourseId,
+                InstructorId = dto.InstructorId,
+                ClassroomId = dto.ClassroomId,
+                MaxSeats = dto.MaxSeats,
+                StartingDate = dto.StartingDate,
+                StartingTime = dto.StartingTime,
+                EndingTime = dto.EndingTime,
+                DayOfWeek = dto.StartingDate.DayOfWeek
+            };
 
             _context.CourseSessions.Add(session);
             await _context.SaveChangesAsync();
@@ -124,55 +144,58 @@ namespace CoursesHelperWebAPI.Controllers
 
         // PUT: api/CourseSessions/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSession(int id, CourseSession session)
+        public async Task<IActionResult> UpdateSession(int id, CreateCourseSessionDto dto)
         {
-            if (id != session.Id)
-                return BadRequest("ID mismatch.");
-
             var existing = await _context.CourseSessions.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            var course = await _context.Courses.FindAsync(session.CourseId);
+            var course = await _context.Courses.FindAsync(dto.CourseId);
             if (course == null)
                 return BadRequest("Course does not exist.");
 
-            var instructor = await _context.Users.FindAsync(session.InstructorId);
-            if (instructor == null)
+            var instructor = await _context.Users.FindAsync(dto.InstructorId);
+            if (instructor == null || instructor.UserType != UserType.Instructor)
                 return BadRequest("Instructor does not exist.");
 
-            var classroom = await _context.Classrooms.FindAsync(session.ClassroomId);
+            var classroom = await _context.Classrooms.FindAsync(dto.ClassroomId);
             if (classroom == null)
                 return BadRequest("Classroom does not exist.");
 
             bool classroomConflict = await _context.CourseSessions.AnyAsync(s =>
                 s.Id != id &&
-                s.ClassroomId == session.ClassroomId &&
-                s.StartingDate == session.StartingDate &&
-                session.StartingTime < s.EndingTime &&
-                session.EndingTime > s.StartingTime);
+                s.ClassroomId == dto.ClassroomId &&
+                s.StartingDate == dto.StartingDate &&
+                dto.StartingTime < s.EndingTime &&
+                dto.EndingTime > s.StartingTime);
 
             if (classroomConflict)
                 return BadRequest("Classroom conflict.");
 
             bool instructorConflict = await _context.CourseSessions.AnyAsync(s =>
                 s.Id != id &&
-                s.InstructorId == session.InstructorId &&
-                s.StartingDate == session.StartingDate &&
-                session.StartingTime < s.EndingTime &&
-                session.EndingTime > s.StartingTime);
+                s.InstructorId == dto.InstructorId &&
+                s.StartingDate == dto.StartingDate &&
+                dto.StartingTime < s.EndingTime &&
+                dto.EndingTime > s.StartingTime);
 
             if (instructorConflict)
                 return BadRequest("Instructor conflict.");
 
-            existing.CourseId = session.CourseId;
-            existing.InstructorId = session.InstructorId;
-            existing.ClassroomId = session.ClassroomId;
-            existing.MaxSeats = session.MaxSeats;
-            existing.StartingDate = session.StartingDate;
-            existing.StartingTime = session.StartingTime;
-            existing.EndingTime = session.EndingTime;
-            existing.DayOfWeek = session.DayOfWeek;
+            if (!await InstructorCanTeachAsync(dto.InstructorId, dto.CourseId))
+                return BadRequest("Instructor is not qualified to teach this course.");
+
+            if (!await InstructorIsAvailableAsync(dto.InstructorId, dto.StartingDate, dto.StartingTime, dto.EndingTime))
+                return BadRequest("Instructor is not available during the selected time.");
+
+            existing.CourseId = dto.CourseId;
+            existing.InstructorId = dto.InstructorId;
+            existing.ClassroomId = dto.ClassroomId;
+            existing.MaxSeats = dto.MaxSeats;
+            existing.StartingDate = dto.StartingDate;
+            existing.StartingTime = dto.StartingTime;
+            existing.EndingTime = dto.EndingTime;
+            existing.DayOfWeek = dto.StartingDate.DayOfWeek;
 
             await _context.SaveChangesAsync();
 
@@ -214,6 +237,26 @@ namespace CoursesHelperWebAPI.Controllers
                 enrolled,
                 remainingSeats
             });
+        }
+
+        private async Task<bool> InstructorCanTeachAsync(string instructorId, int courseId)
+        {
+            return await _context.instructorQualifications.AnyAsync(q =>
+                q.InstructorId == instructorId &&
+                q.CourseId == courseId);
+        }
+
+        private async Task<bool> InstructorIsAvailableAsync(
+            string instructorId,
+            DateOnly startingDate,
+            TimeSpan startingTime,
+            TimeSpan endingTime)
+        {
+            return await _context.InstructorAvailabilities.AnyAsync(a =>
+                a.InstructorId == instructorId &&
+                a.DayOfWeek == startingDate.DayOfWeek &&
+                a.StartingTime <= startingTime &&
+                a.EndingTime >= endingTime);
         }
     }
 }

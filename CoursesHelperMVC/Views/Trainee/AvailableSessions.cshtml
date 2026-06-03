@@ -1,7 +1,10 @@
 @model IEnumerable<AvailableSessionViewModel>
+@inject IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Available Sessions";
+    var webApiBaseUrl = Configuration["WebApi:BaseUrl"]?.TrimEnd('/');
+    var webApiHubUrl = string.IsNullOrWhiteSpace(webApiBaseUrl) ? null : $"{webApiBaseUrl}/enrollmentHub";
 }
 
 <div class="mb-4">
@@ -18,54 +21,77 @@
     <div class="alert alert-danger">@errorMessage</div>
 }
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Course</th>
-                <th>Instructor</th>
-                <th>Classroom</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th class="text-end">Remaining</th>
-                <th class="text-end">Price</th>
-                <th class="text-end">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var session in Model)
-        {
-            <tr>
-                <td>
-                    <div class="fw-semibold">@session.CourseName</div>
-                    <div class="text-muted small">@session.SubjectName</div>
-                </td>
-                <td>@session.InstructorName</td>
-                <td>@session.ClassroomName</td>
-                <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
-                <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
-                <td class="text-end">@session.RemainingSeats / @session.MaxSeats</td>
-                <td class="text-end">@session.Price.ToString("C")</td>
-                <td class="text-end">
-                    @if (session.IsAlreadyEnrolled)
-                    {
-                        <span class="badge bg-secondary">Enrolled</span>
-                    }
-                    else if (session.RemainingSeats <= 0)
-                    {
-                        <span class="badge bg-danger">Full</span>
-                    }
-                    else
-                    {
-                        <form asp-action="Enroll" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="sessionId" value="@session.SessionId" />
-                            <button type="submit" class="btn btn-sm btn-primary">Enroll</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
+@if (Model.Any())
+{
+    <div class="table-responsive" data-enrollment-hub-url="/enrollmentHub" data-enrollment-hub-url-api="@webApiHubUrl">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Instructor</th>
+                    <th>Classroom</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th class="text-end">Remaining</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var session in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="fw-semibold">@session.CourseName</div>
+                        <div class="text-muted small">@session.SubjectName</div>
+                    </td>
+                    <td>@session.InstructorName</td>
+                    <td>@session.ClassroomName</td>
+                    <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
+                    <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
+                    <td class="text-end">
+                        <span class="badge @(session.RemainingSeats <= 0 ? "bg-danger" : "bg-success")"
+                              data-seat-counter
+                              data-session-id="@session.SessionId"
+                              data-max-seats="@session.MaxSeats"
+                              data-remaining-seats="@session.RemainingSeats">
+                            @session.RemainingSeats / @session.MaxSeats
+                        </span>
+                    </td>
+                    <td class="text-end">@session.Price.ToString("C")</td>
+                    <td class="text-end">
+                        @if (session.IsAlreadyEnrolled)
+                        {
+                            <span class="badge bg-secondary">Enrolled</span>
+                        }
+                        else if (session.RemainingSeats <= 0)
+                        {
+                            <span class="badge bg-danger">Full</span>
+                        }
+                        else
+                        {
+                            <form asp-action="Enroll" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sessionId" value="@session.SessionId" />
+                                <button type="submit" class="btn btn-sm btn-primary">Enroll</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <h2 class="h5">No upcoming sessions available</h2>
+        <p class="text-muted mb-0">Check back later or contact the training coordinator.</p>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+    <script src="~/js/enrollment-counter.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,95 @@
+@model InstructorAvailabilityFormViewModel
+
+@{
+    ViewData["Title"] = "Instructor Availability";
+    var slots = ViewBag.AvailabilitySlots as IReadOnlyList<InstructorAvailabilityViewModel> ?? [];
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Availability</h1>
+        <p class="text-muted mb-0">Manage availability slots for @ViewBag.InstructorName.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.InstructorId" class="btn btn-outline-secondary">Back to instructor</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<section class="mb-4">
+    <h2 class="h5 mb-3">Current availability</h2>
+    @if (slots.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var slot in slots)
+                {
+                    <tr>
+                        <td>@slot.DayOfWeek</td>
+                        <td>@slot.StartingTime.ToString(@"hh\:mm") - @slot.EndingTime.ToString(@"hh\:mm")</td>
+                        <td class="text-end">
+                            <a asp-action="EditAvailability"
+                               asp-route-id="@Model.InstructorId"
+                               asp-route-availabilityId="@slot.Id"
+                               class="btn btn-sm btn-outline-primary me-2">Edit</a>
+                            <form asp-action="DeleteAvailability" asp-route-id="@Model.InstructorId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="availabilityId" value="@slot.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">No availability slots have been added.</div>
+    }
+</section>
+
+<section>
+    <h2 class="h5 mb-3">Add availability slot</h2>
+    <form asp-action="AddAvailability" asp-route-id="@Model.InstructorId" method="post">
+        <input type="hidden" asp-for="InstructorId" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="DayOfWeek" class="form-label"></label>
+                <select asp-for="DayOfWeek" asp-items="ViewBag.DayOptions" class="form-select"></select>
+                <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="StartingTime" class="form-label"></label>
+                <input asp-for="StartingTime" type="time" class="form-control" />
+                <span asp-validation-for="StartingTime" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="EndingTime" class="form-label"></label>
+                <input asp-for="EndingTime" type="time" class="form-control" />
+                <span asp-validation-for="EndingTime" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Add availability</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

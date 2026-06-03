@@ -31,10 +31,10 @@
             <tr>
                 <td>@trainee.TraineeName</td>
                 <td>@trainee.Email</td>
-                <td>@trainee.Status</td>
+                <td><partial name="_StatusBadge" model="trainee.Status" /></td>
                 <td class="text-end">@trainee.AmountPaid.ToString("C")</td>
                 <td class="text-end">
-                    <a asp-action="RecordAssessment" asp-route-sessionId="@Model.SessionId" asp-route-traineeId="@trainee.TraineeId" class="btn btn-sm btn-outline-primary">Record assessment</a>
+                    <a asp-action="RecordAssessment" asp-route-sessionId="@Model.SessionId" asp-route-traineeId="@trainee.TraineeId" class="btn btn-sm btn-outline-primary">Record result</a>
                 </td>
             </tr>
         }

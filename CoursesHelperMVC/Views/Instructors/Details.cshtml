@@ -1,0 +1,117 @@
+@model InstructorDetailsViewModel
+
+@{
+    ViewData["Title"] = "Instructor Details";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Name</h1>
+        <p class="text-muted mb-0">Instructor profile, expertise, availability, and assigned sessions.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="EditQualifications" asp-route-id="@Model.InstructorId" class="btn btn-primary">Edit expertise</a>
+        <a asp-action="Availability" asp-route-id="@Model.InstructorId" class="btn btn-outline-primary">Manage availability</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to instructors</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Date of birth</dt>
+    <dd class="col-sm-9">@(Model.DateOfBirth?.ToString("yyyy-MM-dd") ?? "Not provided")</dd>
+</dl>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Qualified courses</h2>
+            @if (Model.QualifiedCourses.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var course in Model.QualifiedCourses)
+                    {
+                        <li class="list-group-item">@course</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="alert alert-warning">No course expertise has been assigned.</div>
+            }
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section>
+            <h2 class="h5 mb-3">Availability</h2>
+            @if (Model.AvailabilitySlots.Any())
+            {
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var slot in Model.AvailabilitySlots)
+                    {
+                        <tr>
+                            <td>@slot.DayOfWeek</td>
+                            <td>@slot.StartingTime.ToString(@"hh\:mm") - @slot.EndingTime.ToString(@"hh\:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-warning">No availability slots have been added.</div>
+            }
+        </section>
+    </div>
+</div>
+
+<section class="mt-4">
+    <h2 class="h5 mb-3">Assigned sessions</h2>
+    @if (Model.AssignedSessions.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Course</th>
+                        <th>Classroom</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th class="text-end">Enrolled</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var session in Model.AssignedSessions)
+                {
+                    <tr>
+                        <td>@session.CourseName</td>
+                        <td>@session.ClassroomName</td>
+                        <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
+                        <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
+                        <td class="text-end">@session.EnrolledCount</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No assigned sessions yet.</div>
+    }
+</section>

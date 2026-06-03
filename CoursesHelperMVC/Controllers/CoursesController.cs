@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CoursesHelperMVC.Controllers;
 
-[Authorize(Roles = "Admin,Coordinator")]
+[Authorize(Roles = "Coordinator")]
 public class CoursesController : Controller
 {
     private readonly AppDbContext _context;

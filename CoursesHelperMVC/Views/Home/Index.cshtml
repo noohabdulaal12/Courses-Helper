@@ -1,42 +1,27 @@
+@model HomeViewModel
+
 @{
     ViewData["Title"] = "Home";
 }
 
-<div class="mb-4">
-    <h1 class="h3 mb-2">Welcome to Courses Helper</h1>
-    <p class="text-muted mb-0">
-        This training management system helps trainees, instructors, and training coordinators manage the course lifecycle.
-    </p>
+<div class="home-hero mb-4">
+    <div>
+        @if (!string.IsNullOrWhiteSpace(Model.RoleName))
+        {
+            <div class="home-role">@Model.RoleName workspace</div>
+        }
+        <h1 class="h3 mb-2">Welcome, @Model.DisplayName</h1>
+        <p class="text-muted mb-0">@Model.IntroText</p>
+    </div>
 </div>
 
-@if (User?.IsInRole("Coordinator") == true)
-{
-    <div class="list-group">
-        <a asp-controller="Courses" asp-action="Index" class="list-group-item list-group-item-action">Courses</a>
-        <a asp-controller="Subjects" asp-action="Index" class="list-group-item list-group-item-action">Subjects</a>
-        <a asp-controller="CourseSessions" asp-action="Index" class="list-group-item list-group-item-action">Sessions</a>
-        <a asp-controller="Enrollments" asp-action="Index" class="list-group-item list-group-item-action">Enrollments</a>
-    </div>
-}
-else if (User?.IsInRole("Trainee") == true)
-{
-    <div class="list-group">
-        <a asp-controller="Trainee" asp-action="Dashboard" class="list-group-item list-group-item-action">Trainee Dashboard</a>
-        <a asp-controller="Trainee" asp-action="AvailableSessions" class="list-group-item list-group-item-action">Available Sessions</a>
-        <a asp-controller="Trainee" asp-action="MyEnrollments" class="list-group-item list-group-item-action">My Enrollments</a>
-        <a asp-controller="Trainee" asp-action="CertificationProgress" class="list-group-item list-group-item-action">Certification Progress</a>
-    </div>
-}
-else if (User?.IsInRole("Instructor") == true)
-{
-    <div class="list-group">
-        <a asp-controller="Instructor" asp-action="Dashboard" class="list-group-item list-group-item-action">Instructor Dashboard</a>
-        <a asp-controller="Instructor" asp-action="MySessions" class="list-group-item list-group-item-action">My Sessions</a>
-    </div>
-}
-else
-{
-    <div class="list-group">
-        <a asp-controller="Account" asp-action="Login" class="list-group-item list-group-item-action">Login</a>
-    </div>
-}
+<div class="home-option-grid">
+    @foreach (var option in Model.Options)
+    {
+        <a asp-controller="@option.Controller" asp-action="@option.Action" class="home-option-card text-decoration-none">
+            <span class="home-option-category">@option.Category</span>
+            <span class="home-option-title">@option.Title</span>
+            <span class="home-option-description">@option.Description</span>
+        </a>
+    }
+</div>

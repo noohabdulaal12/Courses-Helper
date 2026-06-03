@@ -19,6 +19,22 @@ builder.Services.AddControllers()
 
 builder.Services.AddSignalR();
 
+var signalRAllowedOrigins = builder.Configuration
+    .GetSection("SignalR:AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:5097", "https://localhost:7023"];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRClient", policy =>
+    {
+        policy
+            .WithOrigins(signalRAllowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -89,6 +105,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("SignalRClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

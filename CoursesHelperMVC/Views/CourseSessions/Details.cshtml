@@ -1,10 +1,16 @@
 @model CourseSession
+@inject IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Course Session Details";
+    var webApiBaseUrl = Configuration["WebApi:BaseUrl"]?.TrimEnd('/');
+    var webApiHubUrl = string.IsNullOrWhiteSpace(webApiBaseUrl) ? null : $"{webApiBaseUrl}/enrollmentHub";
+    var remainingSeats = Math.Max(0, Model.MaxSeats - Model.TraineeSessions.Count);
 }
 
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"
+     data-enrollment-hub-url="/enrollmentHub"
+     data-enrollment-hub-url-api="@webApiHubUrl">
     <div>
         <h1 class="h3 mb-1">@Model.Course.Name</h1>
         <p class="text-muted mb-0">Course session details</p>
@@ -33,4 +39,20 @@
 
     <dt class="col-sm-3">Max seats</dt>
     <dd class="col-sm-9">@Model.MaxSeats</dd>
+
+    <dt class="col-sm-3">Remaining seats</dt>
+    <dd class="col-sm-9">
+        <span class="badge @(remainingSeats <= 0 ? "bg-danger" : "bg-success")"
+              data-seat-counter
+              data-session-id="@Model.Id"
+              data-max-seats="@Model.MaxSeats"
+              data-remaining-seats="@remainingSeats">
+            @remainingSeats / @Model.MaxSeats
+        </span>
+    </dd>
 </dl>
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+    <script src="~/js/enrollment-counter.js" asp-append-version="true"></script>
+}

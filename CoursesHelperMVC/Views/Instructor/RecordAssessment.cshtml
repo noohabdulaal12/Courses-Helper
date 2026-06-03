@@ -5,8 +5,8 @@
 }
 
 <div class="mb-4">
-    <h1 class="h3 mb-1">Record assessment</h1>
-    <p class="text-muted mb-0">Update trainee result for this assigned session.</p>
+    <h1 class="h3 mb-1">Record pass/fail result</h1>
+    <p class="text-muted mb-0">Mark the trainee as passed, failed, or dropped for this assigned session.</p>
 </div>
 
 <form asp-action="RecordAssessment" method="post" class="session-form">
@@ -23,10 +23,12 @@
         <dd class="col-sm-9">@Model.CourseName</dd>
         <dt class="col-sm-3">Trainee</dt>
         <dd class="col-sm-9">@Model.TraineeName</dd>
+        <dt class="col-sm-3">Current status</dt>
+        <dd class="col-sm-9"><partial name="_StatusBadge" model="Model.Status" /></dd>
     </dl>
 
     <div class="mb-3">
-        <label asp-for="Status" class="form-label"></label>
+        <label asp-for="Status" class="form-label">Assessment result</label>
         <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select"></select>
         <span asp-validation-for="Status" class="text-danger"></span>
     </div>
