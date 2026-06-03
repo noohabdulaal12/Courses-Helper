@@ -1,4 +1,5 @@
 using CoursesHelperMVC.Models;
+using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
@@ -13,10 +14,12 @@ namespace CoursesHelperMVC.Controllers;
 public class CourseSessionsController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public CourseSessionsController(AppDbContext context)
+    public CourseSessionsController(AppDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Index()
@@ -86,6 +89,8 @@ public class CourseSessionsController : Controller
 
         _context.CourseSessions.Add(session);
         await _context.SaveChangesAsync();
+
+        await NotifySessionCreatedAsync(session.Id);
         TempData["SuccessMessage"] = "Course session created successfully.";
 
         return RedirectToAction(nameof(Index));
@@ -132,6 +137,8 @@ public class CourseSessionsController : Controller
             return NotFound();
         }
 
+        var previousInstructorId = session.InstructorId;
+
         session.CourseId = model.CourseId;
         session.InstructorId = model.InstructorId;
         session.ClassroomId = model.ClassroomId;
@@ -144,6 +151,7 @@ public class CourseSessionsController : Controller
         try
         {
             await _context.SaveChangesAsync();
+            await NotifySessionUpdatedAsync(id, previousInstructorId);
             TempData["SuccessMessage"] = "Course session updated successfully.";
         }
         catch (DbUpdateConcurrencyException)
@@ -190,8 +198,21 @@ public class CourseSessionsController : Controller
 
         try
         {
+            var instructorId = session.InstructorId;
+            var courseName = await _context.Courses
+                .Where(c => c.Id == session.CourseId)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync() ?? "a course";
+
             _context.CourseSessions.Remove(session);
             await _context.SaveChangesAsync();
+
+            await _notificationService.NotifyUserAsync(
+                instructorId,
+                "Session removed",
+                $"Your session for {courseName} was removed from the schedule.",
+                Url.Action(nameof(Index), "CourseSessions"));
+
             TempData["SuccessMessage"] = "Course session deleted successfully.";
         }
         catch (DbUpdateException)
@@ -315,5 +336,67 @@ public class CourseSessionsController : Controller
             : $" - {classroom.Description}";
 
         return $"{typeName} #{classroom.Id}{description}";
+    }
+
+    private async Task NotifySessionCreatedAsync(int sessionId)
+    {
+        var session = await _context.CourseSessions
+            .AsNoTracking()
+            .Include(s => s.Course)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session is null)
+        {
+            return;
+        }
+
+        await _notificationService.NotifyUserAsync(
+            session.InstructorId,
+            "New session assigned",
+            $"You were assigned to teach {FormatSessionTitle(session)}.",
+            Url.Action("MySessions", "Instructor"));
+    }
+
+    private async Task NotifySessionUpdatedAsync(int sessionId, string previousInstructorId)
+    {
+        var session = await _context.CourseSessions
+            .AsNoTracking()
+            .Include(s => s.Course)
+            .Include(s => s.TraineeSessions)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session is null)
+        {
+            return;
+        }
+
+        await _notificationService.NotifyUserAsync(
+            session.InstructorId,
+            "Session schedule updated",
+            $"Your session for {FormatSessionTitle(session)} was updated.",
+            Url.Action("MySessions", "Instructor"));
+
+        if (previousInstructorId != session.InstructorId)
+        {
+            await _notificationService.NotifyUserAsync(
+                previousInstructorId,
+                "Session reassigned",
+                $"You are no longer assigned to teach {FormatSessionTitle(session)}.",
+                Url.Action("MySessions", "Instructor"));
+        }
+
+        foreach (var enrollment in session.TraineeSessions)
+        {
+            await _notificationService.NotifyUserAsync(
+                enrollment.TraineeId,
+                "Session schedule updated",
+                $"Your session for {FormatSessionTitle(session)} was updated.",
+                Url.Action("MyEnrollments", "Trainee"));
+        }
+    }
+
+    private static string FormatSessionTitle(CourseSession session)
+    {
+        return $"{session.Course.Name} on {session.StartingDate:yyyy-MM-dd} from {session.StartingTime:hh\\:mm} to {session.EndingTime:hh\\:mm}";
     }
 }

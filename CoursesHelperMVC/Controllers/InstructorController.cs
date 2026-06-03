@@ -1,4 +1,5 @@
 using CoursesHelperMVC.Models;
+using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
@@ -16,11 +17,13 @@ public class InstructorController : Controller
 {
     private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly INotificationService _notificationService;
 
-    public InstructorController(AppDbContext context, UserManager<User> userManager)
+    public InstructorController(AppDbContext context, UserManager<User> userManager, INotificationService notificationService)
     {
         _context = context;
         _userManager = userManager;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -156,6 +159,18 @@ public class InstructorController : Controller
         }
 
         await _context.SaveChangesAsync();
+
+        await _notificationService.NotifyUserAsync(
+            model.TraineeId,
+            "Assessment recorded",
+            $"Your assessment result for {enrollment.CourseSession.Course.Name} is {model.Status}.",
+            Url.Action("MyEnrollments", "Trainee"));
+
+        await _notificationService.NotifyCoordinatorsAsync(
+            "Assessment recorded",
+            $"{FormatUser(enrollment.Trainee)} was marked {model.Status} for {enrollment.CourseSession.Course.Name}.",
+            Url.Action("Index", "Enrollments"));
+
         TempData["SuccessMessage"] = "Assessment updated successfully.";
 
         return RedirectToAction(nameof(SessionTrainees), new { id = model.SessionId });

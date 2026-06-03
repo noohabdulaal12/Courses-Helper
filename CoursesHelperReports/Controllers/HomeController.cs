@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CoursesHelperReports.Models;
 
@@ -15,6 +16,7 @@ public class HomeController : Controller
         _reportingApiClient = reportingApiClient;
     }
 
+    [Authorize(Roles = "Coordinator")]
     public async Task<IActionResult> Index()
     {
         try

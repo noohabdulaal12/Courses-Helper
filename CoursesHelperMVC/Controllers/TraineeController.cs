@@ -1,4 +1,5 @@
 using CoursesHelperMVC.Models;
+using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
@@ -15,11 +16,13 @@ public class TraineeController : Controller
 {
     private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly INotificationService _notificationService;
 
-    public TraineeController(AppDbContext context, UserManager<User> userManager)
+    public TraineeController(AppDbContext context, UserManager<User> userManager, INotificationService notificationService)
     {
         _context = context;
         _userManager = userManager;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -158,6 +161,25 @@ public class TraineeController : Controller
         });
 
         await _context.SaveChangesAsync();
+
+        var sessionLink = Url.Action(nameof(MyEnrollments), "Trainee");
+        await _notificationService.NotifyUserAsync(
+            traineeId,
+            "Enrollment request submitted",
+            $"Your enrollment request for {session.Course.Name} was submitted.",
+            sessionLink);
+
+        await _notificationService.NotifyUserAsync(
+            session.InstructorId,
+            "New trainee enrollment",
+            $"A trainee requested enrollment in your {session.Course.Name} session.",
+            Url.Action("SessionTrainees", "Instructor", new { id = sessionId }));
+
+        await _notificationService.NotifyCoordinatorsAsync(
+            "New enrollment request",
+            $"A trainee requested enrollment in {session.Course.Name}.",
+            Url.Action("Index", "Enrollments"));
+
         TempData["SuccessMessage"] = "Enrollment request created successfully.";
 
         return RedirectToAction(nameof(MyEnrollments));

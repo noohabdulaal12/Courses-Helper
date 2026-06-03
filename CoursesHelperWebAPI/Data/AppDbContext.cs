@@ -35,6 +35,7 @@ namespace CoursesHelperWebAPI.Data
         public DbSet<TraineeQualification> TraineeQualifications { get; set; }
         public DbSet<TraineeSession> TraineeSessions { get; set; }
         public DbSet<UserInfo> UserInfos { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
             
         // FLuent API allows customizing the relationship between classes and tables
         // For example we need to set up composite keys here
@@ -129,6 +130,23 @@ namespace CoursesHelperWebAPI.Data
                 entity.HasKey(ui => ui.UserId);
 
                 entity.HasOne(ui => ui.User).WithOne(u => u.UserInfo).HasForeignKey<UserInfo>(ui => ui.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(n => n.Id);
+
+                entity.Property(n => n.Title).HasMaxLength(200).IsRequired();
+                entity.Property(n => n.Message).HasMaxLength(1000).IsRequired();
+                entity.Property(n => n.Link).HasMaxLength(500);
+                entity.Property(n => n.CreatedAtUtc).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasIndex(n => new { n.UserId, n.ReadAtUtc, n.CreatedAtUtc });
+
+                entity.HasOne(n => n.User)
+                    .WithMany(u => u.Notifications)
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Classroom>(entity =>

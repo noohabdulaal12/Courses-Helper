@@ -8,8 +8,9 @@ namespace CoursesHelperWebAPI.Data
 {
     public static class SeedData
     {
-        private static readonly PasswordHasher<User> _hasher = new();
-        private static readonly string _staticPasswordHash = _hasher.HashPassword(null!, "TestingPassword!");
+        // Deterministic hash for TestingPassword! so migrations do not rewrite seed users on every scaffold.
+        private const string _staticPasswordHash = "AQAAAAIAAYagAAAAEFHS0Dcj5cV5gNNRjaUV+EZ2VKgFC6dRyt21ae+SVV+PVRBOo7GF7uI5wtH7IwltIw==";
+
         public static void Seed(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Certification>().HasData(
