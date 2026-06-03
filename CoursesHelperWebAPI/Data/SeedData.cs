@@ -61,28 +61,10 @@ namespace CoursesHelperWebAPI.Data
             modelBuilder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "trainee-role", Name = "Trainee", NormalizedName = "TRAINEE" },
                 new IdentityRole { Id = "instructor-role", Name = "Instructor", NormalizedName = "INSTRUCTOR" },
-                new IdentityRole { Id = "coordinator-role", Name = "Coordinator", NormalizedName = "COORDINATOR" },
-                new IdentityRole { Id = "admin-role", Name = "Admin", NormalizedName = "ADMIN" }
+                new IdentityRole { Id = "coordinator-role", Name = "Coordinator", NormalizedName = "COORDINATOR" }
             );
 
             modelBuilder.Entity<User>().HasData(
-                new
-                {
-                    Id = "admin-user",
-                    UserName = "admin@uni.edu",
-                    NormalizedUserName = "ADMIN@UNI.EDU",
-                    Email = "admin@uni.edu",
-                    NormalizedEmail = "ADMIN@UNI.EDU",
-                    EmailConfirmed = true,
-                    UserType = UserType.Admin,
-                    SecurityStamp = "STAMP_ADMIN",
-                    PasswordHash = _staticPasswordHash,
-                    ConcurrencyStamp = "ADMIN_STAMP",
-                    AccessFailedCount = 0,
-                    TwoFactorEnabled = false,
-                    PhoneNumberConfirmed = false,
-                    LockoutEnabled = true
-                },
                 new
                 {
                     Id = "coordinator-user",
@@ -273,7 +255,6 @@ namespace CoursesHelperWebAPI.Data
             );
 
             modelBuilder.Entity<IdentityUserRole<string>>().HasData(
-                new { UserId = "admin-user", RoleId = "admin-role" },
                 new { UserId = "coordinator-user", RoleId = "coordinator-role" },
                 new { UserId = "instructor-user", RoleId = "instructor-role" },
                 new { UserId = "instructor-user2", RoleId = "instructor-role" },
@@ -288,7 +269,6 @@ namespace CoursesHelperWebAPI.Data
             );
 
             modelBuilder.Entity<UserInfo>().HasData(
-                new { UserId = "admin-user", FirstName = "Example", LastName = "Admin", DateOfBirth = new DateOnly(1980, 1, 1) },
                 new { UserId = "coordinator-user", FirstName = "Example", LastName = "Coordinator", DateOfBirth = new DateOnly(1985, 5, 15) },
                 new { UserId = "instructor-user", FirstName = "Example", LastName = "Instructor", DateOfBirth = new DateOnly(1975, 10, 20) },
                 new { UserId = "instructor-user2", FirstName = "Fatima", LastName = "Al-Harbi", DateOfBirth = new DateOnly(1981, 3, 12) },
