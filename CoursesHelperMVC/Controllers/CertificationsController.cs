@@ -12,23 +12,22 @@ using System.Threading.Tasks;
 namespace CoursesHelperMVC.Controllers
 {
     [Authorize(Roles = "Admin, Coordinator")]
-    public class ClassroomsController : Controller
+    public class CertificationsController : Controller
     {
         private readonly AppDbContext _context;
 
-        public ClassroomsController(AppDbContext context)
+        public CertificationsController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: Classrooms
+        // GET: Certifications
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.Classrooms.Include(c => c.ClassroomType);
-            return View(await appDbContext.ToListAsync());
+            return View(await _context.Certifications.ToListAsync());
         }
 
-        // GET: Classrooms/Details/5
+        // GET: Certifications/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -36,42 +35,39 @@ namespace CoursesHelperMVC.Controllers
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms
-                .Include(c => c.ClassroomType)
+            var certification = await _context.Certifications
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (classroom == null)
+            if (certification == null)
             {
                 return NotFound();
             }
 
-            return View(classroom);
+            return View(certification);
         }
 
-        // GET: Classrooms/Create
+        // GET: Certifications/Create
         public IActionResult Create()
         {
-            ViewData["TypeId"] = new SelectList(_context.ClassroomsTypes, "Id", "Name");
             return View();
         }
 
-        // POST: Classrooms/Create
+        // POST: Certifications/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,TypeId,Description")] Classroom classroom)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Certification certification)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(classroom);
+                _context.Add(certification);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TypeId"] = new SelectList(_context.ClassroomsTypes, "Id", "Name", classroom.TypeId);
-            return View(classroom);
+            return View(certification);
         }
 
-        // GET: Classrooms/Edit/5
+        // GET: Certifications/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -79,23 +75,22 @@ namespace CoursesHelperMVC.Controllers
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms.FindAsync(id);
-            if (classroom == null)
+            var certification = await _context.Certifications.FindAsync(id);
+            if (certification == null)
             {
                 return NotFound();
             }
-            ViewData["TypeId"] = new SelectList(_context.ClassroomsTypes, "Id", "Name", classroom.TypeId);
-            return View(classroom);
+            return View(certification);
         }
 
-        // POST: Classrooms/Edit/5
+        // POST: Certifications/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TypeId,Description")] Classroom classroom)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Certification certification)
         {
-            if (id != classroom.Id)
+            if (id != certification.Id)
             {
                 return NotFound();
             }
@@ -104,12 +99,12 @@ namespace CoursesHelperMVC.Controllers
             {
                 try
                 {
-                    _context.Update(classroom);
+                    _context.Update(certification);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ClassroomExists(classroom.Id))
+                    if (!CertificationExists(certification.Id))
                     {
                         return NotFound();
                     }
@@ -120,11 +115,10 @@ namespace CoursesHelperMVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TypeId"] = new SelectList(_context.ClassroomsTypes, "Id", "Name", classroom.TypeId);
-            return View(classroom);
+            return View(certification);
         }
 
-        // GET: Classrooms/Delete/5
+        // GET: Certifications/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -132,36 +126,36 @@ namespace CoursesHelperMVC.Controllers
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms
-                .Include(c => c.ClassroomType)
+            var certification = await _context.Certifications
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (classroom == null)
+            if (certification == null)
             {
                 return NotFound();
             }
 
-            return View(classroom);
+            return View(certification);
         }
 
-        // POST: Classrooms/Delete/5
+        // POST: Certifications/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var classroom = await _context.Classrooms.FindAsync(id);
-
-            if (classroom != null)
+            var certification = await _context.Certifications.FindAsync(id);
+            if (certification != null)
             {
-                bool isUsedBySession = await _context.CourseSessions.AnyAsync(cs => cs.ClassroomId == id);
 
-                if (isUsedBySession)
+                bool hasTrainees = await _context.TraineeCertifications
+                .AnyAsync(tc => tc.CertificationId == id);
+
+                if (!hasTrainees)
                 {
-                    ModelState.AddModelError(string.Empty, "This classroom cannot be deleted because it is currently assigned to one or more course sessions.");
-                    return View("Delete", classroom);
+                    _context.Certifications.Remove(certification);
                 }
                 else
                 {
-                    _context.Classrooms.Remove(classroom);
+                    ModelState.AddModelError(string.Empty, "This certification is currently assigned to one or more trainees.");
+                    return View("Delete", certification);
                 }
             }
 
@@ -169,9 +163,9 @@ namespace CoursesHelperMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ClassroomExists(int id)
+        private bool CertificationExists(int id)
         {
-            return _context.Classrooms.Any(e => e.Id == id);
+            return _context.Certifications.Any(e => e.Id == id);
         }
     }
 }
