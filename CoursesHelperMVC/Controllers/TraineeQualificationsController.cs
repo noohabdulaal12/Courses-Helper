@@ -66,6 +66,50 @@ namespace CoursesHelperMVC.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(traineeQualification);
+
+                var potentialCertifications = await _context.CertificationCourses
+                .Where(cc => cc.CourseId == traineeQualification.CourseId)
+                .Select(cc => cc.CertificationId)
+                .Distinct()
+                .ToListAsync();
+
+                foreach (var certId in potentialCertifications)
+                {
+                    bool alreadyHasCert = await _context.TraineeCertifications
+                        .AnyAsync(tc => tc.TraineeId == traineeQualification.TraineeId && tc.CertificationId == certId);
+
+                    if (!alreadyHasCert)
+                    {
+                        var requiredCourseIds = await _context.CertificationCourses
+                            .Where(cc => cc.CertificationId == certId)
+                            .Select(cc => cc.CourseId)
+                            .ToListAsync();
+
+                        var completedCourseIds = await _context.TraineeQualifications
+                            .Where(tq => tq.TraineeId == traineeQualification.TraineeId)
+                            .Select(tq => tq.CourseId)
+                            .ToListAsync();
+
+                        if (!completedCourseIds.Contains(traineeQualification.CourseId))
+                        {
+                            completedCourseIds.Add(traineeQualification.CourseId);
+                        }
+
+                        bool qualifiesForCert = requiredCourseIds.All(reqId => completedCourseIds.Contains(reqId));
+
+                        if (qualifiesForCert)
+                        {
+                            var newCertification = new TraineeCertification
+                            {
+                                TraineeId = traineeQualification.TraineeId,
+                                CertificationId = certId
+                            };
+
+                            _context.Add(newCertification);
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }

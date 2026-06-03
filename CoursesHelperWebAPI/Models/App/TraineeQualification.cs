@@ -8,7 +8,7 @@ namespace CoursesHelperWebAPI.Models.App
     {
         public required string TraineeId { get; set; }
         public required int CourseId { get; set; }
-        public virtual User Trainee { get; set; } = null!;
-        public virtual Course Course { get; set; } = null!;
+        public virtual User? Trainee { get; set; } 
+        public virtual Course? Course { get; set; }
     }
 }
