@@ -13,7 +13,7 @@ namespace CoursesHelperWebAPI.Models.App
         public string? Description { get; set; }
 
         [ForeignKey("TypeId")]
-        public virtual ClassroomType ClassroomType { get; set; } = null!;
+        public virtual ClassroomType? ClassroomType { get; set; }
         public virtual ICollection<CourseSession> CourseSessions { get; set; } = [];
     }
 }

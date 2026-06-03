@@ -8,7 +8,7 @@ namespace CoursesHelperWebAPI.Models.App
     {
         public required int CertificationId { get; set; }
         public required int CourseId { get; set; }
-        public required virtual Certification Certification { get; set; } 
-        public required virtual Course Course { get; set; } 
+        public virtual Certification? Certification { get; set; } 
+        public virtual Course? Course { get; set; } 
     }
 }
