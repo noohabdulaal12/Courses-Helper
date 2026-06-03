@@ -6,7 +6,7 @@
 
 <div class="mb-4">
     <h1 class="h3 mb-1">Certification progress</h1>
-    <p class="text-muted mb-0">Track required, completed, and pending courses for each certification.</p>
+    <p class="text-muted mb-0">Track required, completed, and pending courses for your assigned certification tracks.</p>
 </div>
 
 @foreach (var certification in Model)
@@ -26,31 +26,62 @@
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="fw-semibold">Required</div>
-                <ul class="mb-0">
-                    @foreach (var course in certification.RequiredCourses)
-                    {
-                        <li>@course</li>
-                    }
-                </ul>
+                @if (certification.RequiredCourses.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var course in certification.RequiredCourses)
+                        {
+                            <li>@course</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No required courses have been set yet.</p>
+                }
             </div>
             <div class="col-md-4">
                 <div class="fw-semibold">Completed</div>
-                <ul class="mb-0">
-                    @foreach (var course in certification.CompletedCourses)
-                    {
-                        <li>@course</li>
-                    }
-                </ul>
+                @if (certification.CompletedCourses.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var course in certification.CompletedCourses)
+                        {
+                            <li>@course</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No required courses completed yet.</p>
+                }
             </div>
             <div class="col-md-4">
                 <div class="fw-semibold">Pending</div>
-                <ul class="mb-0">
-                    @foreach (var course in certification.PendingCourses)
-                    {
-                        <li>@course</li>
-                    }
-                </ul>
+                @if (certification.PendingCourses.Any())
+                {
+                    <ul class="mb-0">
+                        @foreach (var course in certification.PendingCourses)
+                        {
+                            <li>@course</li>
+                        }
+                    </ul>
+                }
+                else if (certification.RequiredCourses.Any())
+                {
+                    <p class="text-muted mb-0">No pending courses.</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Waiting for certification requirements.</p>
+                }
             </div>
         </div>
+    </div>
+}
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You are not assigned to any certification tracks yet.
     </div>
 }

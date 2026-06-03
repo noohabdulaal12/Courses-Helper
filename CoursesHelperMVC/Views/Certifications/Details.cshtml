@@ -16,6 +16,7 @@
     </div>
     <div class="table-actions">
         <a asp-controller="CertificationCourses" asp-action="Index" asp-route-certificationId="@Model.Id" class="btn btn-primary">Manage Required Courses</a>
+        <a asp-controller="TraineeCertifications" asp-action="Progress" asp-route-certificationId="@Model.Id" class="btn btn-outline-primary">View Trainee Progress</a>
         <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Edit</a>
         <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
     </div>

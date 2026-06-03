@@ -1,0 +1,129 @@
+@model CoursesHelperMVC.Models.CertificationProgressIndexViewModel
+
+@{
+    ViewData["Title"] = "Trainee Certification Progress";
+}
+
+<div class="page-header">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Trainee Certification Progress</h1>
+        <p class="text-muted mb-0">Track assigned certification progress from required courses and completed qualifications.</p>
+    </div>
+    <div class="table-actions">
+        <a asp-action="Index" class="btn btn-outline-secondary">Assigned Certifications</a>
+        <a asp-controller="TraineeQualifications" asp-action="Index" class="btn btn-outline-secondary">Trainee Qualifications</a>
+        <a asp-action="Create" class="btn btn-primary">Assign Certification</a>
+    </div>
+</div>
+
+<form asp-action="Progress" method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+        <label asp-for="TraineeId" class="form-label">Trainee</label>
+        <select asp-for="TraineeId" asp-items="Model.TraineeOptions" class="form-control">
+            <option value="">All trainees</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="CertificationId" class="form-label">Certification</label>
+        <select asp-for="CertificationId" asp-items="Model.CertificationOptions" class="form-control">
+            <option value="">All certifications</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label asp-for="Status" class="form-label">Status</label>
+        <select asp-for="Status" class="form-control">
+            <option value="All">All</option>
+            <option value="Complete">Complete</option>
+            <option value="Incomplete">Incomplete</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Trainee</th>
+            <th>Certification</th>
+            <th>Progress</th>
+            <th>Required Courses</th>
+            <th>Completed</th>
+            <th>Missing</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var row in Model.Rows)
+{
+        <tr>
+            <td>
+                <div class="fw-semibold">@row.TraineeName</div>
+                <div class="text-muted small">@row.TraineeEmail</div>
+            </td>
+            <td class="fw-semibold">@row.CertificationName</td>
+            <td style="min-width: 150px;">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>@row.CompletedCount / @row.RequiredCount</span>
+                    <span>@row.ProgressPercentage%</span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Certification progress" aria-valuenow="@row.ProgressPercentage" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @row.ProgressPercentage%"></div>
+                </div>
+            </td>
+            <td>
+                @if (row.RequiredCourses.Any())
+                {
+                    <span>@string.Join(", ", row.RequiredCourses)</span>
+                }
+                else
+                {
+                    <span class="text-muted">No required courses set</span>
+                }
+            </td>
+            <td>
+                @if (row.CompletedCourses.Any())
+                {
+                    <span>@string.Join(", ", row.CompletedCourses)</span>
+                }
+                else
+                {
+                    <span class="text-muted">None yet</span>
+                }
+            </td>
+            <td>
+                @if (row.MissingCourses.Any())
+                {
+                    <span>@string.Join(", ", row.MissingCourses)</span>
+                }
+                else if (row.RequiredCount > 0)
+                {
+                    <span class="text-muted">None</span>
+                }
+                else
+                {
+                    <span class="text-muted">Set required courses first</span>
+                }
+            </td>
+            <td>
+                @if (row.IsComplete)
+                {
+                    <span class="status-badge status-completed">Complete</span>
+                }
+                else
+                {
+                    <span class="status-badge status-neutral">Incomplete</span>
+                }
+            </td>
+        </tr>
+}
+@if (!Model.Rows.Any())
+{
+        <tr>
+            <td colspan="7" class="text-center text-muted py-4">No trainee certification progress matches the current filters.</td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -249,23 +249,26 @@ public class TraineeController : Controller
             .Select(q => q.CourseId)
             .ToListAsync();
 
-        var certifications = await _context.Certifications
+        var assignedCertifications = await _context.TraineeCertifications
             .AsNoTracking()
-            .Include(c => c.CertificationCourses)
+            .Where(tc => tc.TraineeId == traineeId)
+            .Include(tc => tc.Certification)
+                .ThenInclude(c => c.CertificationCourses)
                 .ThenInclude(cc => cc.Course)
-            .OrderBy(c => c.Name)
+            .OrderBy(tc => tc.Certification.Name)
             .ToListAsync();
 
-        return certifications.Select(c =>
+        return assignedCertifications.Select(assignment =>
         {
-            var required = c.CertificationCourses
+            var certification = assignment.Certification;
+            var required = certification.CertificationCourses
                 .OrderBy(cc => cc.Course.Name)
                 .Select(cc => cc.Course)
                 .ToList();
 
             return new CertificationProgressViewModel
             {
-                CertificationName = c.Name,
+                CertificationName = certification.Name,
                 RequiredCourses = required.Select(course => course.Name).ToList(),
                 CompletedCourses = required.Where(course => completedCourseIds.Contains(course.Id)).Select(course => course.Name).ToList(),
                 PendingCourses = required.Where(course => !completedCourseIds.Contains(course.Id)).Select(course => course.Name).ToList()

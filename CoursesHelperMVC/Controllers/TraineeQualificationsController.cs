@@ -31,7 +31,8 @@ namespace CoursesHelperMVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Choose a trainee qualification from the list to view its details.";
+                return RedirectToAction(nameof(Index));
             }
 
             var traineeQualification = await _context.TraineeQualifications
@@ -80,7 +81,8 @@ namespace CoursesHelperMVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Choose a trainee qualification from the list before editing.";
+                return RedirectToAction(nameof(Index));
             }
 
             var traineeQualification = await _context.TraineeQualifications.FindAsync(traineeId, courseId.Value);
@@ -130,7 +132,8 @@ namespace CoursesHelperMVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(traineeId) || courseId == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Choose a trainee qualification from the list before deleting.";
+                return RedirectToAction(nameof(Index));
             }
 
             var traineeQualification = await _context.TraineeQualifications

@@ -10,7 +10,11 @@
         <h1>Trainee Certifications</h1>
         <p class="text-muted mb-0">Review certification tracks assigned to trainees.</p>
     </div>
-    <a asp-action="Create" class="btn btn-primary">Assign Certification</a>
+    <div class="table-actions">
+        <a asp-action="Progress" class="btn btn-outline-primary">View Progress</a>
+        <a asp-controller="TraineeQualifications" asp-action="Index" class="btn btn-outline-secondary">Trainee Qualifications</a>
+        <a asp-action="Create" class="btn btn-primary">Assign Certification</a>
+    </div>
 </div>
 
 <table class="table">
