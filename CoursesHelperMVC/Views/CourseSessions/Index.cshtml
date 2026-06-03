@@ -1,7 +1,10 @@
 @model IEnumerable<CourseSession>
+@inject IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Course Sessions";
+    var webApiBaseUrl = Configuration["WebApi:BaseUrl"]?.TrimEnd('/');
+    var webApiHubUrl = string.IsNullOrWhiteSpace(webApiBaseUrl) ? null : $"{webApiBaseUrl}/enrollmentHub";
 }
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -28,7 +31,7 @@
     </div>
 }
 
-<div class="table-responsive">
+<div class="table-responsive" data-enrollment-hub-url="/enrollmentHub" data-enrollment-hub-url-api="@webApiHubUrl">
     <table class="table table-hover align-middle">
         <thead class="table-light">
             <tr>
@@ -37,6 +40,7 @@
                 <th>Classroom</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th class="text-end">Remaining</th>
                 <th class="text-end">Max seats</th>
                 <th class="text-end">Actions</th>
             </tr>
@@ -53,6 +57,18 @@
                 <td>@CourseSessionsController.FormatClassroom(session.Classroom)</td>
                 <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
                 <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
+                @{
+                    var remainingSeats = Math.Max(0, session.MaxSeats - session.TraineeSessions.Count);
+                }
+                <td class="text-end">
+                    <span class="badge @(remainingSeats <= 0 ? "bg-danger" : "bg-success")"
+                          data-seat-counter
+                          data-session-id="@session.Id"
+                          data-max-seats="@session.MaxSeats"
+                          data-remaining-seats="@remainingSeats">
+                        @remainingSeats / @session.MaxSeats
+                    </span>
+                </td>
                 <td class="text-end">@session.MaxSeats</td>
                 <td class="text-end">
                     <div class="btn-group" role="group" aria-label="Session actions">
@@ -69,9 +85,14 @@
 
 @if (!Model.Any())
 {
-    <div class="text-center border rounded p-5">
+    <div class="empty-state">
         <h2 class="h5">No course sessions yet</h2>
         <p class="text-muted">Create the first session to start scheduling classes.</p>
         <a asp-action="Create" class="btn btn-primary">Create session</a>
     </div>
+}
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+    <script src="~/js/enrollment-counter.js" asp-append-version="true"></script>
 }

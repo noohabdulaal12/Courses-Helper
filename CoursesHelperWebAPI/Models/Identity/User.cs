@@ -10,6 +10,7 @@ namespace CoursesHelperWebAPI.Models.Identity
         public virtual UserInfo? UserInfo { get; set; }
         public virtual ICollection<ExtraEmail> ExtraEmails { get; set; } = [];
         public virtual ICollection<ExtraPhone> ExtraPhones { get; set; } = [];
+        public virtual ICollection<InstructorAvailability> InstructorAvailabilities { get; set; } = [];
         public virtual ICollection<InstructorQualification> InstructorQualifications { get; set; } = [];
         public virtual ICollection<TraineeCertification> TraineeCertifications { get; set; } = [];
         public virtual ICollection<TraineeQualification> TraineeQualifications { get; set; } = [];

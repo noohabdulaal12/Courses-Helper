@@ -1,36 +1,41 @@
 @model IEnumerable<InstructorSessionViewModel>
 
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Course</th>
-                <th>Classroom</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th class="text-end">Enrolled</th>
-                <th class="text-end">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var session in Model)
-        {
-            <tr>
-                <td>@session.CourseName</td>
-                <td>@session.ClassroomName</td>
-                <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
-                <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
-                <td class="text-end">@session.EnrolledCount</td>
-                <td class="text-end">
-                    <a asp-action="SessionTrainees" asp-route-id="@session.SessionId" class="btn btn-sm btn-outline-primary">Trainees</a>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
-
-@if (!Model.Any())
+@if (Model.Any())
 {
-    <p class="text-muted mb-0">No assigned sessions found.</p>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Classroom</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th class="text-end">Enrolled</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var session in Model)
+            {
+                <tr>
+                    <td>@session.CourseName</td>
+                    <td>@session.ClassroomName</td>
+                    <td>@session.StartingDate.ToString("yyyy-MM-dd")</td>
+                    <td>@session.StartingTime.ToString(@"hh\:mm") - @session.EndingTime.ToString(@"hh\:mm")</td>
+                    <td class="text-end">@session.EnrolledCount</td>
+                    <td class="text-end">
+                        <a asp-action="SessionTrainees" asp-route-id="@session.SessionId" class="btn btn-sm btn-outline-primary">Trainees</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <h2 class="h5">No assigned sessions found</h2>
+        <p class="text-muted mb-0">Assigned sessions will appear here when the schedule is created.</p>
+    </div>
 }

@@ -1,0 +1,48 @@
+@model InstructorQualificationsEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Instructor Expertise";
+}
+
+<div class="mb-4">
+    <h1 class="h3 mb-1">Edit expertise</h1>
+    <p class="text-muted mb-0">Choose the courses @Model.InstructorName is qualified to teach.</p>
+</div>
+
+<form asp-action="EditQualifications" asp-route-id="@Model.InstructorId" method="post">
+    <input type="hidden" asp-for="InstructorId" />
+    <input type="hidden" asp-for="InstructorName" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Qualified</th>
+                    <th>Course</th>
+                    <th>Subject</th>
+                </tr>
+            </thead>
+            <tbody>
+            @for (var i = 0; i < Model.Courses.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <input type="hidden" asp-for="Courses[i].CourseId" />
+                        <input type="hidden" asp-for="Courses[i].CourseName" />
+                        <input type="hidden" asp-for="Courses[i].SubjectName" />
+                        <input asp-for="Courses[i].IsSelected" class="form-check-input" />
+                    </td>
+                    <td>@Model.Courses[i].CourseName</td>
+                    <td>@Model.Courses[i].SubjectName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Save expertise</button>
+        <a asp-action="Details" asp-route-id="@Model.InstructorId" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CoursesHelperMVC.Controllers;
 
-[Authorize(Roles = "Admin,Coordinator")]
+[Authorize(Roles = "Coordinator")]
 public class CourseSessionsController : Controller
 {
     private readonly AppDbContext _context;
@@ -31,6 +31,7 @@ public class CourseSessionsController : Controller
                 .ThenInclude(i => i.UserInfo)
             .Include(s => s.Classroom)
                 .ThenInclude(c => c.ClassroomType)
+            .Include(s => s.TraineeSessions)
             .OrderBy(s => s.StartingDate)
             .ThenBy(s => s.StartingTime)
             .ToListAsync();
@@ -52,6 +53,7 @@ public class CourseSessionsController : Controller
                 .ThenInclude(i => i.UserInfo)
             .Include(s => s.Classroom)
                 .ThenInclude(c => c.ClassroomType)
+            .Include(s => s.TraineeSessions)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         return session is null ? NotFound() : View(session);
@@ -295,6 +297,38 @@ public class CourseSessionsController : Controller
         if (classroomConflict)
         {
             ModelState.AddModelError(string.Empty, "This classroom is already booked during the selected time.");
+        }
+
+        var instructorConflict = await _context.CourseSessions.AnyAsync(s =>
+            s.Id != sessionId &&
+            s.InstructorId == model.InstructorId &&
+            s.StartingDate == model.StartingDate &&
+            model.StartingTime < s.EndingTime &&
+            model.EndingTime > s.StartingTime);
+
+        if (instructorConflict)
+        {
+            ModelState.AddModelError(string.Empty, "This instructor is already booked during the selected time.");
+        }
+
+        var isQualified = await _context.instructorQualifications.AnyAsync(q =>
+            q.InstructorId == model.InstructorId &&
+            q.CourseId == model.CourseId);
+
+        if (!isQualified)
+        {
+            ModelState.AddModelError(nameof(CourseSessionFormViewModel.InstructorId), "This instructor is not qualified to teach the selected course.");
+        }
+
+        var isAvailable = await _context.InstructorAvailabilities.AnyAsync(a =>
+            a.InstructorId == model.InstructorId &&
+            a.DayOfWeek == model.StartingDate.DayOfWeek &&
+            a.StartingTime <= model.StartingTime &&
+            a.EndingTime >= model.EndingTime);
+
+        if (!isAvailable)
+        {
+            ModelState.AddModelError(nameof(CourseSessionFormViewModel.InstructorId), "This instructor is not available during the selected session time.");
         }
     }
 

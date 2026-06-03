@@ -1,6 +1,7 @@
 using CoursesHelperMVC.Models;
 using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.Hubs;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
 using CoursesHelperWebAPI.Models.Identity;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CoursesHelperMVC.Controllers;
 
@@ -17,12 +19,18 @@ public class TraineeController : Controller
     private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly INotificationService _notificationService;
+    private readonly IHubContext<EnrollmentHub> _hubContext;
 
-    public TraineeController(AppDbContext context, UserManager<User> userManager, INotificationService notificationService)
+    public TraineeController(
+        AppDbContext context,
+        UserManager<User> userManager,
+        INotificationService notificationService,
+        IHubContext<EnrollmentHub> hubContext)
     {
         _context = context;
         _userManager = userManager;
         _notificationService = notificationService;
+        _hubContext = hubContext;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -36,7 +44,7 @@ public class TraineeController : Controller
         var enrollments = await GetTraineeEnrollmentsAsync(traineeId);
         var certificationProgress = await BuildCertificationProgressAsync(traineeId);
         var activeEnrollments = enrollments
-            .Where(e => e.Status is not Status.Completed and not Status.Failed)
+            .Where(e => e.Status is not Status.Completed and not Status.Failed and not Status.Dropped)
             .ToList();
 
         return View(new TraineeDashboardViewModel
@@ -161,6 +169,7 @@ public class TraineeController : Controller
         });
 
         await _context.SaveChangesAsync();
+        await SendSeatUpdateAsync(sessionId);
 
         var sessionLink = Url.Action(nameof(MyEnrollments), "Trainee");
         await _notificationService.NotifyUserAsync(
@@ -268,5 +277,27 @@ public class TraineeController : Controller
         return user.UserInfo is null
             ? user.UserName ?? user.Email ?? user.Id
             : $"{user.UserInfo.FirstName} {user.UserInfo.LastName}";
+    }
+
+    private async Task SendSeatUpdateAsync(int sessionId)
+    {
+        var sessionSeats = await _context.CourseSessions
+            .Where(s => s.Id == sessionId)
+            .Select(s => new
+            {
+                s.MaxSeats,
+                Enrolled = s.TraineeSessions.Count
+            })
+            .FirstOrDefaultAsync();
+
+        if (sessionSeats is null)
+        {
+            return;
+        }
+
+        await _hubContext.Clients.All.SendAsync(
+            "ReceiveSeatUpdate",
+            sessionId,
+            sessionSeats.MaxSeats - sessionSeats.Enrolled);
     }
 }

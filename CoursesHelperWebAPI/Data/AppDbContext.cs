@@ -27,6 +27,7 @@ namespace CoursesHelperWebAPI.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<CoursePrerequisite> CoursePrerequisites { get; set; }
         public DbSet<CourseSession> CourseSessions { get; set; }
+        public DbSet<InstructorAvailability> InstructorAvailabilities { get; set; }
         public DbSet<InstructorQualification> instructorQualifications { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<TakenTogether> TakenTogethers { get; set; }
@@ -71,6 +72,22 @@ namespace CoursesHelperWebAPI.Data
                 entity.HasOne(iq => iq.Course).WithMany(c => c.InstructorQualifications).HasForeignKey(iq => iq.CourseId).OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(iq => iq.Instructor).WithMany(ui => ui.InstructorQualifications).HasForeignKey(iq => iq.InstructorId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<InstructorAvailability>(entity =>
+            {
+                entity.HasKey(ia => ia.Id);
+
+                entity.Property(ia => ia.DayOfWeek).HasConversion<int>();
+                entity.Property(ia => ia.StartingTime).HasColumnType("Time");
+                entity.Property(ia => ia.EndingTime).HasColumnType("Time");
+
+                entity.HasIndex(ia => new { ia.InstructorId, ia.DayOfWeek, ia.StartingTime, ia.EndingTime });
+
+                entity.HasOne(ia => ia.Instructor)
+                    .WithMany(u => u.InstructorAvailabilities)
+                    .HasForeignKey(ia => ia.InstructorId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<TakenTogetherCourse>(entity =>
@@ -225,6 +242,8 @@ namespace CoursesHelperWebAPI.Data
                 entity.HasMany(u => u.ExtraEmails).WithOne(e => e.User).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
  
                 entity.HasMany(u => u.ExtraPhones).WithOne(p => p.User).HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(u => u.InstructorAvailabilities).WithOne(ia => ia.Instructor).HasForeignKey(ia => ia.InstructorId).OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(u => u.UserInfo) .WithOne(ui => ui.User).HasForeignKey<UserInfo>(ui => ui.UserId).OnDelete(DeleteBehavior.Cascade);
 

@@ -1,0 +1,16 @@
+@model Status
+
+@{
+    var badgeClass = Model switch
+    {
+        Status.Requested => "status-requested",
+        Status.Confirmed => "status-confirmed",
+        Status.Attending => "status-attending",
+        Status.Completed => "status-completed",
+        Status.Failed => "status-failed",
+        Status.Dropped => "status-dropped",
+        _ => "status-neutral"
+    };
+}
+
+<span class="status-badge @badgeClass">@EnrollmentsController.FormatEnrollmentStatus(Model)</span>

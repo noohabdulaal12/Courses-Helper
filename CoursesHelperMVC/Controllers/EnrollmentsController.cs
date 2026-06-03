@@ -1,6 +1,7 @@
 using CoursesHelperMVC.Models;
 using CoursesHelperMVC.Services;
 using CoursesHelperWebAPI.Data;
+using CoursesHelperWebAPI.Hubs;
 using CoursesHelperWebAPI.Models.App;
 using CoursesHelperWebAPI.Models.Enums;
 using CoursesHelperWebAPI.Models.Identity;
@@ -8,19 +9,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CoursesHelperMVC.Controllers;
 
-[Authorize(Roles = "Admin,Coordinator")]
+[Authorize(Roles = "Coordinator")]
 public class EnrollmentsController : Controller
 {
     private readonly AppDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IHubContext<EnrollmentHub> _hubContext;
 
-    public EnrollmentsController(AppDbContext context, INotificationService notificationService)
+    public EnrollmentsController(
+        AppDbContext context,
+        INotificationService notificationService,
+        IHubContext<EnrollmentHub> hubContext)
     {
         _context = context;
         _notificationService = notificationService;
+        _hubContext = hubContext;
     }
 
     public async Task<IActionResult> Index()
@@ -81,6 +88,7 @@ public class EnrollmentsController : Controller
 
         _context.TraineeSessions.Add(enrollment);
         await _context.SaveChangesAsync();
+        await SendSeatUpdateAsync(model.SessionId);
 
         var createdEnrollment = await FindEnrollmentAsync(model.TraineeId, model.SessionId, asNoTracking: true);
         if (createdEnrollment is not null)
@@ -154,6 +162,8 @@ public class EnrollmentsController : Controller
         enrollment.AmountPaid = model.AmountPaid;
         enrollment.Status = model.Status;
 
+        await SyncTraineeQualificationAsync(enrollment, previousStatus);
+
         await _context.SaveChangesAsync();
 
         var updatedEnrollment = await FindEnrollmentAsync(traineeId, sessionId, asNoTracking: true);
@@ -194,6 +204,7 @@ public class EnrollmentsController : Controller
         {
             _context.TraineeSessions.Remove(enrollment);
             await _context.SaveChangesAsync();
+            await SendSeatUpdateAsync(sessionId);
             TempData["SuccessMessage"] = "Enrollment deleted successfully.";
         }
         catch (DbUpdateException)
@@ -254,8 +265,59 @@ public class EnrollmentsController : Controller
     private void PopulateStatuses(Status selectedStatus)
     {
         ViewBag.Statuses = Enum.GetValues<Status>()
-            .Select(status => new SelectListItem(status.ToString(), ((int)status).ToString(), status == selectedStatus))
+            .Select(status => new SelectListItem(FormatEnrollmentStatus(status), ((int)status).ToString(), status == selectedStatus))
             .ToList();
+    }
+
+    private async Task SyncTraineeQualificationAsync(TraineeSession enrollment, Status previousStatus)
+    {
+        var courseId = await _context.CourseSessions
+            .Where(s => s.Id == enrollment.SessionId)
+            .Select(s => s.CourseId)
+            .FirstAsync();
+
+        if (enrollment.Status == Status.Completed)
+        {
+            var exists = await _context.TraineeQualifications.AnyAsync(q =>
+                q.TraineeId == enrollment.TraineeId &&
+                q.CourseId == courseId);
+
+            if (!exists)
+            {
+                _context.TraineeQualifications.Add(new TraineeQualification
+                {
+                    TraineeId = enrollment.TraineeId,
+                    CourseId = courseId
+                });
+            }
+
+            return;
+        }
+
+        if (previousStatus != Status.Completed)
+        {
+            return;
+        }
+
+        var hasOtherCompletedEnrollment = await _context.TraineeSessions.AnyAsync(e =>
+            e.TraineeId == enrollment.TraineeId &&
+            e.SessionId != enrollment.SessionId &&
+            e.CourseSession.CourseId == courseId &&
+            e.Status == Status.Completed);
+
+        if (hasOtherCompletedEnrollment)
+        {
+            return;
+        }
+
+        var qualification = await _context.TraineeQualifications.FirstOrDefaultAsync(q =>
+            q.TraineeId == enrollment.TraineeId &&
+            q.CourseId == courseId);
+
+        if (qualification is not null)
+        {
+            _context.TraineeQualifications.Remove(qualification);
+        }
     }
 
     private async Task ValidateEnrollmentCreateAsync(EnrollmentFormViewModel model)
@@ -320,6 +382,20 @@ public class EnrollmentsController : Controller
         return $"{session.Course.Name} on {session.StartingDate:yyyy-MM-dd} from {session.StartingTime:hh\\:mm} to {session.EndingTime:hh\\:mm}";
     }
 
+    public static string FormatEnrollmentStatus(Status status)
+    {
+        return status switch
+        {
+            Status.Requested => "Enrolled / Requested",
+            Status.Confirmed => "Confirmed",
+            Status.Attending => "Attending",
+            Status.Completed => "Completed / Passed",
+            Status.Failed => "Failed",
+            Status.Dropped => "Dropped",
+            _ => status.ToString()
+        };
+    }
+
     private async Task NotifyEnrollmentCreatedAsync(TraineeSession enrollment)
     {
         var sessionDetails = FormatSession(enrollment.CourseSession);
@@ -368,5 +444,27 @@ public class EnrollmentsController : Controller
                 $"Your payment record for {sessionDetails} was updated to {enrollment.AmountPaid:C}.",
                 traineeLink);
         }
+    }
+
+    private async Task SendSeatUpdateAsync(int sessionId)
+    {
+        var sessionSeats = await _context.CourseSessions
+            .Where(s => s.Id == sessionId)
+            .Select(s => new
+            {
+                s.MaxSeats,
+                Enrolled = s.TraineeSessions.Count
+            })
+            .FirstOrDefaultAsync();
+
+        if (sessionSeats is null)
+        {
+            return;
+        }
+
+        await _hubContext.Clients.All.SendAsync(
+            "ReceiveSeatUpdate",
+            sessionId,
+            sessionSeats.MaxSeats - sessionSeats.Enrolled);
     }
 }

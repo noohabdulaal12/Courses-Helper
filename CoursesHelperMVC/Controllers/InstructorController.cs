@@ -120,9 +120,9 @@ public class InstructorController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RecordAssessment(RecordAssessmentViewModel model)
     {
-        if (model.Status is not Status.Completed and not Status.Failed)
+        if (model.Status is not Status.Completed and not Status.Failed and not Status.Dropped)
         {
-            ModelState.AddModelError(nameof(model.Status), "Assessment result must be Completed or Failed.");
+            ModelState.AddModelError(nameof(model.Status), "Assessment result must be Pass, Fail, or Dropped.");
         }
 
         var enrollment = await FindAssignedEnrollmentAsync(model.SessionId, model.TraineeId, asNoTracking: false);
@@ -139,6 +139,7 @@ public class InstructorController : Controller
             return View(model);
         }
 
+        var previousStatus = enrollment.Status;
         enrollment.Status = model.Status;
 
         if (model.Status == Status.Completed)
@@ -157,18 +158,22 @@ public class InstructorController : Controller
                 });
             }
         }
+        else if (previousStatus == Status.Completed)
+        {
+            await RemoveCompletedQualificationIfNoOtherCompletedEnrollmentAsync(enrollment);
+        }
 
         await _context.SaveChangesAsync();
 
         await _notificationService.NotifyUserAsync(
             model.TraineeId,
             "Assessment recorded",
-            $"Your assessment result for {enrollment.CourseSession.Course.Name} is {model.Status}.",
+            $"Your assessment result for {enrollment.CourseSession.Course.Name} is {FormatAssessmentResult(model.Status)}.",
             Url.Action("MyEnrollments", "Trainee"));
 
         await _notificationService.NotifyCoordinatorsAsync(
             "Assessment recorded",
-            $"{FormatUser(enrollment.Trainee)} was marked {model.Status} for {enrollment.CourseSession.Course.Name}.",
+            $"{FormatUser(enrollment.Trainee)} was marked {FormatAssessmentResult(model.Status)} for {enrollment.CourseSession.Course.Name}.",
             Url.Action("Index", "Enrollments"));
 
         TempData["SuccessMessage"] = "Assessment updated successfully.";
@@ -231,8 +236,44 @@ public class InstructorController : Controller
     {
         ViewBag.Statuses = new List<SelectListItem>
         {
-            new("Completed", ((int)Status.Completed).ToString(), selectedStatus == Status.Completed),
-            new("Failed", ((int)Status.Failed).ToString(), selectedStatus == Status.Failed)
+            new("Pass - mark enrollment completed", ((int)Status.Completed).ToString(), selectedStatus == Status.Completed),
+            new("Fail - mark enrollment failed", ((int)Status.Failed).ToString(), selectedStatus == Status.Failed),
+            new("Dropped - trainee did not complete", ((int)Status.Dropped).ToString(), selectedStatus == Status.Dropped)
+        };
+    }
+
+    private async Task RemoveCompletedQualificationIfNoOtherCompletedEnrollmentAsync(TraineeSession enrollment)
+    {
+        var courseId = enrollment.CourseSession.CourseId;
+        var hasOtherCompletedEnrollment = await _context.TraineeSessions.AnyAsync(e =>
+            e.TraineeId == enrollment.TraineeId &&
+            e.SessionId != enrollment.SessionId &&
+            e.CourseSession.CourseId == courseId &&
+            e.Status == Status.Completed);
+
+        if (hasOtherCompletedEnrollment)
+        {
+            return;
+        }
+
+        var qualification = await _context.TraineeQualifications.FirstOrDefaultAsync(q =>
+            q.TraineeId == enrollment.TraineeId &&
+            q.CourseId == courseId);
+
+        if (qualification is not null)
+        {
+            _context.TraineeQualifications.Remove(qualification);
+        }
+    }
+
+    public static string FormatAssessmentResult(Status status)
+    {
+        return status switch
+        {
+            Status.Completed => "Pass",
+            Status.Failed => "Fail",
+            Status.Dropped => "Dropped",
+            _ => status.ToString()
         };
     }
 

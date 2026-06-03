@@ -6,6 +6,7 @@
         Confirmed = 2,
         Attending = 3,
         Completed = 4,
-        Failed = 5
+        Failed = 5,
+        Dropped = 6
     }
 }

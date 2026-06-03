@@ -123,6 +123,9 @@ namespace CoursesHelperWebAPI.Controllers
             if (dto.AmountPaid < 0)
                 return BadRequest("AmountPaid cannot be negative.");
 
+            if (!Enum.IsDefined(typeof(Status), dto.Status))
+                return BadRequest("Status is invalid.");
+
             var existing = await _context.TraineeSessions
                 .FirstOrDefaultAsync(e =>
                     e.TraineeId == dto.TraineeId &&
@@ -131,8 +134,11 @@ namespace CoursesHelperWebAPI.Controllers
             if (existing == null)
                 return NotFound();
 
+            var previousStatus = existing.Status;
             existing.AmountPaid = dto.AmountPaid;
             existing.Status = dto.Status;
+
+            await SyncTraineeQualificationAsync(existing, previousStatus);
 
             await _context.SaveChangesAsync();
 
@@ -179,6 +185,57 @@ namespace CoursesHelperWebAPI.Controllers
                 "ReceiveSeatUpdate",
                 sessionId,
                 remainingSeats);
+        }
+
+        private async Task SyncTraineeQualificationAsync(TraineeSession enrollment, Status previousStatus)
+        {
+            var courseId = await _context.CourseSessions
+                .Where(s => s.Id == enrollment.SessionId)
+                .Select(s => s.CourseId)
+                .FirstAsync();
+
+            if (enrollment.Status == Status.Completed)
+            {
+                var exists = await _context.TraineeQualifications.AnyAsync(q =>
+                    q.TraineeId == enrollment.TraineeId &&
+                    q.CourseId == courseId);
+
+                if (!exists)
+                {
+                    _context.TraineeQualifications.Add(new TraineeQualification
+                    {
+                        TraineeId = enrollment.TraineeId,
+                        CourseId = courseId
+                    });
+                }
+
+                return;
+            }
+
+            if (previousStatus != Status.Completed)
+            {
+                return;
+            }
+
+            var hasOtherCompletedEnrollment = await _context.TraineeSessions.AnyAsync(e =>
+                e.TraineeId == enrollment.TraineeId &&
+                e.SessionId != enrollment.SessionId &&
+                e.CourseSession.CourseId == courseId &&
+                e.Status == Status.Completed);
+
+            if (hasOtherCompletedEnrollment)
+            {
+                return;
+            }
+
+            var qualification = await _context.TraineeQualifications.FirstOrDefaultAsync(q =>
+                q.TraineeId == enrollment.TraineeId &&
+                q.CourseId == courseId);
+
+            if (qualification is not null)
+            {
+                _context.TraineeQualifications.Remove(qualification);
+            }
         }
     }
 }

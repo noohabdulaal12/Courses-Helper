@@ -29,5 +29,5 @@
     <dd class="col-sm-9">@Model.AmountPaid.ToString("C")</dd>
 
     <dt class="col-sm-3">Status</dt>
-    <dd class="col-sm-9">@Model.Status</dd>
+    <dd class="col-sm-9"><partial name="_StatusBadge" model="Model.Status" /></dd>
 </dl>

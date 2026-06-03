@@ -8,7 +8,7 @@ namespace CoursesHelperWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Coordinator,Admin")]
+    [Authorize(Roles = "Coordinator")]
     public class ReportsController : ControllerBase
     {
         private readonly AppDbContext _context;

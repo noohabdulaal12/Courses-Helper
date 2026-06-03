@@ -1,0 +1,48 @@
+@model InstructorAvailabilityFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Instructor Availability";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Edit availability</h1>
+        <p class="text-muted mb-0">Update an availability slot for @ViewBag.InstructorName.</p>
+    </div>
+    <a asp-action="Availability" asp-route-id="@Model.InstructorId" class="btn btn-outline-secondary">Back to availability</a>
+</div>
+
+<form asp-action="EditAvailability"
+      asp-route-id="@Model.InstructorId"
+      asp-route-availabilityId="@ViewBag.AvailabilityId"
+      method="post">
+    <input type="hidden" asp-for="InstructorId" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="DayOfWeek" class="form-label"></label>
+            <select asp-for="DayOfWeek" asp-items="ViewBag.DayOptions" class="form-select"></select>
+            <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="StartingTime" class="form-label"></label>
+            <input asp-for="StartingTime" type="time" class="form-control" />
+            <span asp-validation-for="StartingTime" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="EndingTime" class="form-label"></label>
+            <input asp-for="EndingTime" type="time" class="form-control" />
+            <span asp-validation-for="EndingTime" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a asp-action="Availability" asp-route-id="@Model.InstructorId" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
