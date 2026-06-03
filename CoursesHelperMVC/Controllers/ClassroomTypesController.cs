@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CoursesHelperMVC.Controllers
 {
-    [Authorize(Roles = "Admin, Coordinator")]
+    [Authorize(Roles = "Coordinator")]
     public class ClassroomTypesController : Controller
     {
         private readonly AppDbContext _context;
