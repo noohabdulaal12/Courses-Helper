@@ -38,7 +38,9 @@ public class TraineeEnrollmentViewModel
     public Status Status { get; set; }
     public decimal CoursePrice { get; set; }
     public decimal AmountPaid { get; set; }
+    public DateOnly? PaymentDueDate { get; set; }
     public decimal RemainingBalance => Math.Max(0, CoursePrice - AmountPaid);
+    public PaymentStatus PaymentStatus => PaymentStatusHelper.Calculate(CoursePrice, AmountPaid, PaymentDueDate);
 }
 
 public class CertificationProgressViewModel

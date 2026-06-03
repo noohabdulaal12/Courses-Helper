@@ -1,0 +1,14 @@
+@model PaymentStatus
+
+@{
+    var badgeClass = Model switch
+    {
+        PaymentStatus.Unpaid => "payment-unpaid",
+        PaymentStatus.Partial => "payment-partial",
+        PaymentStatus.Paid => "payment-paid",
+        PaymentStatus.Overdue => "payment-overdue",
+        _ => "payment-neutral"
+    };
+}
+
+<span class="payment-badge @badgeClass">@PaymentStatusHelper.Format(Model)</span>

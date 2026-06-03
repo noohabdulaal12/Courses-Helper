@@ -6,7 +6,7 @@
 
 <div class="mb-4">
     <h1 class="h3 mb-1">Edit enrollment</h1>
-    <p class="text-muted mb-0">Update payment amount and enrollment status.</p>
+    <p class="text-muted mb-0">Update payment amount, due date, and enrollment status.</p>
 </div>
 
 <form asp-action="Edit" asp-route-traineeId="@Model.TraineeId" asp-route-sessionId="@Model.SessionId" method="post" class="enrollment-form">
@@ -28,6 +28,11 @@
             <label asp-for="AmountPaid" class="form-label"></label>
             <input asp-for="AmountPaid" class="form-control" min="0" step="0.01" />
             <span asp-validation-for="AmountPaid" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PaymentDueDate" class="form-label"></label>
+            <input asp-for="PaymentDueDate" type="date" class="form-control" />
+            <span asp-validation-for="PaymentDueDate" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="Status" class="form-label"></label>

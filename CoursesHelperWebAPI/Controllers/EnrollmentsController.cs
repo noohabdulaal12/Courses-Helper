@@ -38,7 +38,9 @@ namespace CoursesHelperWebAPI.Controllers
                     TraineeName = e.Trainee.UserName,
                     e.SessionId,
                     CourseName = e.CourseSession.Course.Name,
+                    CoursePrice = e.CourseSession.Course.Price,
                     e.AmountPaid,
+                    e.PaymentDueDate,
                     e.Status
                 })
                 .ToListAsync();
@@ -61,11 +63,15 @@ namespace CoursesHelperWebAPI.Controllers
                 return BadRequest("Trainee does not exist.");
 
             var session = await _context.CourseSessions
+                .Include(s => s.Course)
                 .Include(s => s.TraineeSessions)
                 .FirstOrDefaultAsync(s => s.Id == dto.SessionId);
 
             if (session == null)
                 return BadRequest("Session does not exist.");
+
+            if (dto.AmountPaid > session.Course.Price)
+                return BadRequest("AmountPaid cannot exceed the course price.");
 
             bool alreadyEnrolled = await _context.TraineeSessions.AnyAsync(e =>
                 e.TraineeId == dto.TraineeId &&
@@ -96,6 +102,7 @@ namespace CoursesHelperWebAPI.Controllers
                 TraineeId = dto.TraineeId,
                 SessionId = dto.SessionId,
                 AmountPaid = dto.AmountPaid,
+                PaymentDueDate = dto.PaymentDueDate,
                 Status = Status.Requested
             };
 
@@ -109,6 +116,7 @@ namespace CoursesHelperWebAPI.Controllers
                 enrollment.TraineeId,
                 enrollment.SessionId,
                 enrollment.AmountPaid,
+                enrollment.PaymentDueDate,
                 enrollment.Status
             });
         }
@@ -127,6 +135,8 @@ namespace CoursesHelperWebAPI.Controllers
                 return BadRequest("Status is invalid.");
 
             var existing = await _context.TraineeSessions
+                .Include(e => e.CourseSession)
+                    .ThenInclude(s => s.Course)
                 .FirstOrDefaultAsync(e =>
                     e.TraineeId == dto.TraineeId &&
                     e.SessionId == dto.SessionId);
@@ -134,8 +144,12 @@ namespace CoursesHelperWebAPI.Controllers
             if (existing == null)
                 return NotFound();
 
+            if (dto.AmountPaid > existing.CourseSession.Course.Price)
+                return BadRequest("AmountPaid cannot exceed the course price.");
+
             var previousStatus = existing.Status;
             existing.AmountPaid = dto.AmountPaid;
+            existing.PaymentDueDate = dto.PaymentDueDate;
             existing.Status = dto.Status;
 
             await SyncTraineeQualificationAsync(existing, previousStatus);

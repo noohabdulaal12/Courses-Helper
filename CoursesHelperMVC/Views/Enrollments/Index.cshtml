@@ -35,7 +35,10 @@
                 <th>Trainee</th>
                 <th>Session</th>
                 <th>Status</th>
+                <th>Payment</th>
+                <th>Due date</th>
                 <th class="text-end">Amount paid</th>
+                <th class="text-end">Balance</th>
                 <th class="text-end">Actions</th>
             </tr>
         </thead>
@@ -52,7 +55,13 @@
                     </div>
                 </td>
                 <td><partial name="_StatusBadge" model="enrollment.Status" /></td>
+                <td>
+                    <partial name="_PaymentStatusBadge"
+                             model="PaymentStatusHelper.Calculate(enrollment.CourseSession.Course.Price, enrollment.AmountPaid, enrollment.PaymentDueDate)" />
+                </td>
+                <td>@(enrollment.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "Not set")</td>
                 <td class="text-end">@enrollment.AmountPaid.ToString("C")</td>
+                <td class="text-end">@Math.Max(0, enrollment.CourseSession.Course.Price - enrollment.AmountPaid).ToString("C")</td>
                 <td class="text-end">
                     <div class="btn-group" role="group" aria-label="Enrollment actions">
                         <a asp-action="Details" asp-route-traineeId="@enrollment.TraineeId" asp-route-sessionId="@enrollment.SessionId" class="btn btn-sm btn-outline-secondary">Details</a>

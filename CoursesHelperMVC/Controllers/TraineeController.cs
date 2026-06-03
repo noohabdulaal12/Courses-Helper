@@ -236,7 +236,8 @@ public class TraineeController : Controller
             EndingTime = e.CourseSession.EndingTime,
             Status = e.Status,
             CoursePrice = e.CourseSession.Course.Price,
-            AmountPaid = e.AmountPaid
+            AmountPaid = e.AmountPaid,
+            PaymentDueDate = e.PaymentDueDate
         }).ToList();
     }
 

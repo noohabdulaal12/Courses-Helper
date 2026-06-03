@@ -1,0 +1,72 @@
+@model PaymentsIndexViewModel
+
+@{
+    ViewData["Title"] = "Payments";
+    var filters = new[] { "All", "Overdue", "Unpaid", "Partial", "Paid" };
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Payments</h1>
+        <p class="text-muted mb-0">Track course payment due dates, balances, and overdue enrollments.</p>
+    </div>
+</div>
+
+<div class="page-actions mb-4">
+    @foreach (var filter in filters)
+    {
+        <a asp-action="Index"
+           asp-route-filter="@filter"
+           class="btn @(Model.Filter == filter ? "btn-primary" : "btn-outline-secondary")">
+            @filter
+        </a>
+    }
+</div>
+
+@if (Model.Payments.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Trainee</th>
+                    <th>Session</th>
+                    <th>Payment status</th>
+                    <th>Due date</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Paid</th>
+                    <th class="text-end">Balance</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var payment in Model.Payments)
+            {
+                <tr>
+                    <td>@payment.TraineeName</td>
+                    <td>@payment.SessionDetails</td>
+                    <td><partial name="_PaymentStatusBadge" model="payment.PaymentStatus" /></td>
+                    <td>@(payment.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "Not set")</td>
+                    <td class="text-end">@payment.CoursePrice.ToString("C")</td>
+                    <td class="text-end">@payment.AmountPaid.ToString("C")</td>
+                    <td class="text-end">@payment.RemainingBalance.ToString("C")</td>
+                    <td class="text-end">
+                        <a asp-controller="Enrollments"
+                           asp-action="Edit"
+                           asp-route-traineeId="@payment.TraineeId"
+                           asp-route-sessionId="@payment.SessionId"
+                           class="btn btn-sm btn-outline-primary">Edit payment</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <h2 class="h5">No payments found</h2>
+        <p class="text-muted mb-0">No enrollment payments match the selected filter.</p>
+    </div>
+}

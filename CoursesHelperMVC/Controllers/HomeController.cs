@@ -95,6 +95,7 @@ public class HomeController : Controller
                     new HomeOptionViewModel { Category = "Delivery", Title = "Sessions", Description = "Schedule course sessions, rooms, instructors, and seats.", Controller = "CourseSessions", Action = "Index" },
                     new HomeOptionViewModel { Category = "Teaching", Title = "Instructors", Description = "Manage instructor expertise, availability, and assigned sessions.", Controller = "Instructors", Action = "Index" },
                     new HomeOptionViewModel { Category = "Lifecycle", Title = "Enrollments", Description = "Update statuses, payments, and trainee registration records.", Controller = "Enrollments", Action = "Index" },
+                    new HomeOptionViewModel { Category = "Payments", Title = "Payments", Description = "Track due dates, balances, and overdue course payments.", Controller = "Payments", Action = "Index" },
                     new HomeOptionViewModel { Category = "Updates", Title = "Notifications", Description = "Review system notifications and coordinator updates.", Controller = "Notifications", Action = "Index" },
                     new HomeOptionViewModel { Category = "Public", Title = "Public Lookup", Description = "Open the public certification progress lookup.", Controller = "PublicLookup", Action = "Index" }
                 ]

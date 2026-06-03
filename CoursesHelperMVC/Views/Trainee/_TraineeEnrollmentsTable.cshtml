@@ -10,6 +10,8 @@
                     <th>Date</th>
                     <th>Time</th>
                     <th>Status</th>
+                    <th>Payment</th>
+                    <th>Due date</th>
                     <th class="text-end">Price</th>
                     <th class="text-end">Paid</th>
                     <th class="text-end">Balance</th>
@@ -23,6 +25,8 @@
                     <td>@enrollment.StartingDate.ToString("yyyy-MM-dd")</td>
                     <td>@enrollment.StartingTime.ToString(@"hh\:mm") - @enrollment.EndingTime.ToString(@"hh\:mm")</td>
                     <td><partial name="_StatusBadge" model="enrollment.Status" /></td>
+                    <td><partial name="_PaymentStatusBadge" model="enrollment.PaymentStatus" /></td>
+                    <td>@(enrollment.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "Not set")</td>
                     <td class="text-end">@enrollment.CoursePrice.ToString("C")</td>
                     <td class="text-end">@enrollment.AmountPaid.ToString("C")</td>
                     <td class="text-end">@enrollment.RemainingBalance.ToString("C")</td>

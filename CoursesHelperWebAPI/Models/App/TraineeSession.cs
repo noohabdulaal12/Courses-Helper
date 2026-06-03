@@ -12,6 +12,7 @@ namespace CoursesHelperWebAPI.Models.App
 
         [Column(TypeName = "decimal(18,2)")]
         public required Decimal AmountPaid { get; set; }
+        public DateOnly? PaymentDueDate { get; set; }
         public Status Status { get; set; } = Status.Requested;
         public virtual User Trainee { get; set; } = null!;
         public virtual CourseSession CourseSession { get; set; } = null!;

@@ -18,5 +18,9 @@ public class EnrollmentFormViewModel
     [DataType(DataType.Currency)]
     public decimal AmountPaid { get; set; }
 
+    [Display(Name = "Payment due date")]
+    [DataType(DataType.Date)]
+    public DateOnly? PaymentDueDate { get; set; }
+
     public Status Status { get; set; } = Status.Requested;
 }

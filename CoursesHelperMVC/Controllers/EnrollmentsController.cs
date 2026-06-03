@@ -83,6 +83,7 @@ public class EnrollmentsController : Controller
             TraineeId = model.TraineeId,
             SessionId = model.SessionId,
             AmountPaid = model.AmountPaid,
+            PaymentDueDate = model.PaymentDueDate,
             Status = Status.Requested
         };
 
@@ -134,6 +135,8 @@ public class EnrollmentsController : Controller
             ModelState.AddModelError(nameof(EnrollmentFormViewModel.Status), "Please choose a valid status.");
         }
 
+        await ValidatePaymentAsync(model);
+
         if (!ModelState.IsValid)
         {
             var current = await FindEnrollmentAsync(traineeId, sessionId, asNoTracking: true);
@@ -157,9 +160,11 @@ public class EnrollmentsController : Controller
         }
 
         var previousAmountPaid = enrollment.AmountPaid;
+        var previousPaymentDueDate = enrollment.PaymentDueDate;
         var previousStatus = enrollment.Status;
 
         enrollment.AmountPaid = model.AmountPaid;
+        enrollment.PaymentDueDate = model.PaymentDueDate;
         enrollment.Status = model.Status;
 
         await SyncTraineeQualificationAsync(enrollment, previousStatus);
@@ -169,7 +174,7 @@ public class EnrollmentsController : Controller
         var updatedEnrollment = await FindEnrollmentAsync(traineeId, sessionId, asNoTracking: true);
         if (updatedEnrollment is not null)
         {
-            await NotifyEnrollmentUpdatedAsync(updatedEnrollment, previousStatus, previousAmountPaid);
+            await NotifyEnrollmentUpdatedAsync(updatedEnrollment, previousStatus, previousAmountPaid, previousPaymentDueDate);
         }
 
         TempData["SuccessMessage"] = "Enrollment updated successfully.";
@@ -328,6 +333,7 @@ public class EnrollmentsController : Controller
         }
 
         var session = await _context.CourseSessions
+            .Include(s => s.Course)
             .Include(s => s.TraineeSessions)
             .FirstOrDefaultAsync(s => s.Id == model.SessionId);
 
@@ -354,6 +360,26 @@ public class EnrollmentsController : Controller
         {
             ModelState.AddModelError(nameof(EnrollmentFormViewModel.SessionId), "The selected session is full.");
         }
+
+        await ValidatePaymentAsync(model, session.Course.Price);
+    }
+
+    private async Task ValidatePaymentAsync(EnrollmentFormViewModel model, decimal? coursePrice = null)
+    {
+        if (model.AmountPaid < 0)
+        {
+            ModelState.AddModelError(nameof(EnrollmentFormViewModel.AmountPaid), "Amount paid cannot be negative.");
+        }
+
+        coursePrice ??= await _context.CourseSessions
+            .Where(s => s.Id == model.SessionId)
+            .Select(s => (decimal?)s.Course.Price)
+            .FirstOrDefaultAsync();
+
+        if (coursePrice.HasValue && model.AmountPaid > coursePrice.Value)
+        {
+            ModelState.AddModelError(nameof(EnrollmentFormViewModel.AmountPaid), "Amount paid cannot exceed the course price.");
+        }
     }
 
     private static EnrollmentFormViewModel ToFormModel(TraineeSession enrollment)
@@ -363,6 +389,7 @@ public class EnrollmentsController : Controller
             TraineeId = enrollment.TraineeId,
             SessionId = enrollment.SessionId,
             AmountPaid = enrollment.AmountPaid,
+            PaymentDueDate = enrollment.PaymentDueDate,
             Status = enrollment.Status
         };
     }
@@ -415,7 +442,11 @@ public class EnrollmentsController : Controller
             instructorLink);
     }
 
-    private async Task NotifyEnrollmentUpdatedAsync(TraineeSession enrollment, Status previousStatus, decimal previousAmountPaid)
+    private async Task NotifyEnrollmentUpdatedAsync(
+        TraineeSession enrollment,
+        Status previousStatus,
+        decimal previousAmountPaid,
+        DateOnly? previousPaymentDueDate)
     {
         var sessionDetails = FormatSession(enrollment.CourseSession);
         var traineeLink = Url.Action("MyEnrollments", "Trainee");
@@ -442,6 +473,16 @@ public class EnrollmentsController : Controller
                 enrollment.TraineeId,
                 "Payment updated",
                 $"Your payment record for {sessionDetails} was updated to {enrollment.AmountPaid:C}.",
+                traineeLink);
+        }
+
+        if (previousPaymentDueDate != enrollment.PaymentDueDate)
+        {
+            var dueDateText = enrollment.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "not set";
+            await _notificationService.NotifyUserAsync(
+                enrollment.TraineeId,
+                "Payment due date updated",
+                $"Your payment due date for {sessionDetails} is now {dueDateText}.",
                 traineeLink);
         }
     }

@@ -422,6 +422,49 @@ h1.h3,
   background: #f6f8fa;
 }
 
+.payment-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: .28rem .65rem;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.payment-unpaid {
+  border-color: #fed7aa;
+  color: #9a3412;
+  background: #fff7ed;
+}
+
+.payment-partial {
+  border-color: #fde68a;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.payment-paid {
+  border-color: #bbf7d0;
+  color: var(--app-success);
+  background: #f0fdf4;
+}
+
+.payment-overdue {
+  border-color: #fecaca;
+  color: var(--app-danger);
+  background: #fff1f2;
+}
+
+.payment-neutral {
+  border-color: #d8dee4;
+  color: #4b5563;
+  background: #f6f8fa;
+}
+
 .list-group {
   border-radius: var(--app-radius);
 }

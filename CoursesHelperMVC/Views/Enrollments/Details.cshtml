@@ -28,6 +28,18 @@
     <dt class="col-sm-3">Amount paid</dt>
     <dd class="col-sm-9">@Model.AmountPaid.ToString("C")</dd>
 
+    <dt class="col-sm-3">Remaining balance</dt>
+    <dd class="col-sm-9">@Math.Max(0, Model.CourseSession.Course.Price - Model.AmountPaid).ToString("C")</dd>
+
+    <dt class="col-sm-3">Payment due date</dt>
+    <dd class="col-sm-9">@(Model.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "Not set")</dd>
+
+    <dt class="col-sm-3">Payment status</dt>
+    <dd class="col-sm-9">
+        <partial name="_PaymentStatusBadge"
+                 model="PaymentStatusHelper.Calculate(Model.CourseSession.Course.Price, Model.AmountPaid, Model.PaymentDueDate)" />
+    </dd>
+
     <dt class="col-sm-3">Status</dt>
     <dd class="col-sm-9"><partial name="_StatusBadge" model="Model.Status" /></dd>
 </dl>
