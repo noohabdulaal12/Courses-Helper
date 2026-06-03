@@ -32,88 +32,7 @@ namespace CoursesHelperMVC.Controllers
 
         public async Task<IActionResult> Progress(string? traineeId, int? certificationId, string status = "All")
         {
-            var assignmentsQuery = _context.TraineeCertifications
-                .Include(tc => tc.Trainee)
-                .ThenInclude(t => t.UserInfo)
-                .Include(tc => tc.Certification)
-                .ThenInclude(c => c.CertificationCourses)
-                .ThenInclude(cc => cc.Course)
-                .AsNoTracking()
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(traineeId))
-            {
-                assignmentsQuery = assignmentsQuery.Where(tc => tc.TraineeId == traineeId);
-            }
-
-            if (certificationId.HasValue)
-            {
-                assignmentsQuery = assignmentsQuery.Where(tc => tc.CertificationId == certificationId.Value);
-            }
-
-            var assignments = await assignmentsQuery
-                .OrderBy(tc => tc.Trainee.Email)
-                .ThenBy(tc => tc.Certification.Name)
-                .ToListAsync();
-
-            var selectedTraineeIds = assignments.Select(a => a.TraineeId).Distinct().ToList();
-            var qualifications = await _context.TraineeQualifications
-                .Include(tq => tq.Course)
-                .AsNoTracking()
-                .Where(tq => selectedTraineeIds.Contains(tq.TraineeId))
-                .ToListAsync();
-
-            var qualificationsByTrainee = qualifications
-                .GroupBy(q => q.TraineeId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var rows = assignments
-                .Select(assignment =>
-                {
-                    var requiredCourses = assignment.Certification.CertificationCourses
-                        .Where(cc => cc.Course is not null)
-                        .OrderBy(cc => cc.Course!.Name)
-                        .ToList();
-
-                    qualificationsByTrainee.TryGetValue(assignment.TraineeId, out var traineeQualifications);
-                    traineeQualifications ??= [];
-
-                    var completedCourseIds = traineeQualifications
-                        .Select(q => q.CourseId)
-                        .ToHashSet();
-
-                    var requiredCourseIds = requiredCourses
-                        .Select(cc => cc.CourseId)
-                        .ToHashSet();
-
-                    var completedRequiredCourses = requiredCourses
-                        .Where(cc => completedCourseIds.Contains(cc.CourseId))
-                        .Select(cc => cc.Course!.Name)
-                        .ToList();
-
-                    var missingCourses = requiredCourses
-                        .Where(cc => !completedCourseIds.Contains(cc.CourseId))
-                        .Select(cc => cc.Course!.Name)
-                        .ToList();
-
-                    var userInfo = assignment.Trainee.UserInfo;
-                    var traineeName = userInfo is null
-                        ? assignment.Trainee.Email ?? assignment.Trainee.UserName ?? assignment.TraineeId
-                        : $"{userInfo.FirstName} {userInfo.LastName}";
-
-                    return new CertificationProgressRowViewModel
-                    {
-                        TraineeId = assignment.TraineeId,
-                        CertificationId = assignment.CertificationId,
-                        TraineeName = traineeName,
-                        TraineeEmail = assignment.Trainee.Email ?? string.Empty,
-                        CertificationName = assignment.Certification.Name,
-                        RequiredCourses = requiredCourses.Select(cc => cc.Course!.Name).ToList(),
-                        CompletedCourses = completedRequiredCourses,
-                        MissingCourses = missingCourses
-                    };
-                })
-                .ToList();
+            var rows = await BuildProgressRowsAsync(traineeId, certificationId);
 
             rows = status switch
             {
@@ -146,6 +65,38 @@ namespace CoursesHelperMVC.Controllers
                 }).ToList(),
                 CertificationOptions = certifications.Select(c => new SelectListItem(c.Name, c.Id.ToString(), c.Id == certificationId)).ToList(),
                 Rows = rows
+            };
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> Certificate(string traineeId, int certificationId)
+        {
+            if (string.IsNullOrWhiteSpace(traineeId))
+            {
+                return NotFound();
+            }
+
+            var row = (await BuildProgressRowsAsync(traineeId, certificationId)).FirstOrDefault();
+            if (row is null)
+            {
+                return NotFound();
+            }
+
+            if (!row.IsComplete)
+            {
+                TempData["ErrorMessage"] = "A certificate/reference can only be generated after all required courses are completed.";
+                return RedirectToAction(nameof(Progress), new { traineeId, certificationId });
+            }
+
+            var model = new CertificationReferenceViewModel
+            {
+                TraineeName = row.TraineeName,
+                TraineeEmail = row.TraineeEmail,
+                CertificationName = row.CertificationName,
+                CompletedRequiredCourses = row.CompletedCourses,
+                IssueDate = DateOnly.FromDateTime(DateTime.Today),
+                ReferenceNumber = $"CH-{certificationId}-{Math.Abs(traineeId.GetHashCode()):X}"
             };
 
             return View(model);
@@ -298,6 +249,88 @@ namespace CoursesHelperMVC.Controllers
         private Task<bool> TraineeCertificationExistsAsync(string traineeId, int certificationId)
         {
             return _context.TraineeCertifications.AnyAsync(e => e.TraineeId == traineeId && e.CertificationId == certificationId);
+        }
+
+        private async Task<List<CertificationProgressRowViewModel>> BuildProgressRowsAsync(string? traineeId = null, int? certificationId = null)
+        {
+            var assignmentsQuery = _context.TraineeCertifications
+                .Include(tc => tc.Trainee)
+                .ThenInclude(t => t.UserInfo)
+                .Include(tc => tc.Certification)
+                .ThenInclude(c => c.CertificationCourses)
+                .ThenInclude(cc => cc.Course)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(traineeId))
+            {
+                assignmentsQuery = assignmentsQuery.Where(tc => tc.TraineeId == traineeId);
+            }
+
+            if (certificationId.HasValue)
+            {
+                assignmentsQuery = assignmentsQuery.Where(tc => tc.CertificationId == certificationId.Value);
+            }
+
+            var assignments = await assignmentsQuery
+                .OrderBy(tc => tc.Trainee.Email)
+                .ThenBy(tc => tc.Certification.Name)
+                .ToListAsync();
+
+            var selectedTraineeIds = assignments.Select(a => a.TraineeId).Distinct().ToList();
+            var qualifications = await _context.TraineeQualifications
+                .Include(tq => tq.Course)
+                .AsNoTracking()
+                .Where(tq => selectedTraineeIds.Contains(tq.TraineeId))
+                .ToListAsync();
+
+            var qualificationsByTrainee = qualifications
+                .GroupBy(q => q.TraineeId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            return assignments
+                .Select(assignment =>
+                {
+                    var requiredCourses = assignment.Certification.CertificationCourses
+                        .Where(cc => cc.Course is not null)
+                        .OrderBy(cc => cc.Course!.Name)
+                        .ToList();
+
+                    qualificationsByTrainee.TryGetValue(assignment.TraineeId, out var traineeQualifications);
+                    traineeQualifications ??= [];
+
+                    var completedCourseIds = traineeQualifications
+                        .Select(q => q.CourseId)
+                        .ToHashSet();
+
+                    var completedRequiredCourses = requiredCourses
+                        .Where(cc => completedCourseIds.Contains(cc.CourseId))
+                        .Select(cc => cc.Course!.Name)
+                        .ToList();
+
+                    var missingCourses = requiredCourses
+                        .Where(cc => !completedCourseIds.Contains(cc.CourseId))
+                        .Select(cc => cc.Course!.Name)
+                        .ToList();
+
+                    var userInfo = assignment.Trainee.UserInfo;
+                    var traineeName = userInfo is null
+                        ? assignment.Trainee.Email ?? assignment.Trainee.UserName ?? assignment.TraineeId
+                        : $"{userInfo.FirstName} {userInfo.LastName}";
+
+                    return new CertificationProgressRowViewModel
+                    {
+                        TraineeId = assignment.TraineeId,
+                        CertificationId = assignment.CertificationId,
+                        TraineeName = traineeName,
+                        TraineeEmail = assignment.Trainee.Email ?? string.Empty,
+                        CertificationName = assignment.Certification.Name,
+                        RequiredCourses = requiredCourses.Select(cc => cc.Course!.Name).ToList(),
+                        CompletedCourses = completedRequiredCourses,
+                        MissingCourses = missingCourses
+                    };
+                })
+                .ToList();
         }
     }
 }

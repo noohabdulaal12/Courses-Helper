@@ -27,3 +27,13 @@ public class CertificationProgressRowViewModel
     public bool IsComplete => RequiredCount > 0 && MissingCourses.Count == 0;
     public int ProgressPercentage => RequiredCount == 0 ? 0 : (int)Math.Round((double)CompletedCount / RequiredCount * 100);
 }
+
+public class CertificationReferenceViewModel
+{
+    public string TraineeName { get; set; } = string.Empty;
+    public string TraineeEmail { get; set; } = string.Empty;
+    public string CertificationName { get; set; } = string.Empty;
+    public IReadOnlyList<string> CompletedRequiredCourses { get; set; } = [];
+    public DateOnly IssueDate { get; set; }
+    public string ReferenceNumber { get; set; } = string.Empty;
+}

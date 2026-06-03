@@ -53,6 +53,7 @@
             <th>Completed</th>
             <th>Missing</th>
             <th>Status</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -117,12 +118,18 @@
                     <span class="status-badge status-neutral">Incomplete</span>
                 }
             </td>
+            <td>
+                @if (row.IsComplete)
+                {
+                    <a asp-action="Certificate" asp-route-traineeId="@row.TraineeId" asp-route-certificationId="@row.CertificationId" class="btn btn-sm btn-outline-primary">Certificate</a>
+                }
+            </td>
         </tr>
 }
 @if (!Model.Rows.Any())
 {
         <tr>
-            <td colspan="7" class="text-center text-muted py-4">No trainee certification progress matches the current filters.</td>
+            <td colspan="8" class="text-center text-muted py-4">No trainee certification progress matches the current filters.</td>
         </tr>
 }
     </tbody>

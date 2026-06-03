@@ -1,0 +1,120 @@
+@model CoursesHelperMVC.Models.CertificationReferenceViewModel
+
+@{
+    ViewData["Title"] = "Certificate Reference";
+}
+
+<style>
+    .certificate-sheet {
+        max-width: 900px;
+        margin: 2rem auto;
+        border: 2px solid #0f766e;
+        padding: 3rem;
+        background: #fff;
+    }
+
+    .certificate-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #0f3d3a;
+        text-align: center;
+    }
+
+    .certificate-subtitle {
+        text-align: center;
+        color: #667085;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        font-size: .85rem;
+        font-weight: 700;
+    }
+
+    .certificate-name {
+        font-size: 1.8rem;
+        font-weight: 800;
+        text-align: center;
+        margin: 1.5rem 0 .25rem;
+        color: #102a27;
+    }
+
+    .certificate-statement {
+        max-width: 700px;
+        margin: 1.5rem auto;
+        text-align: center;
+        font-size: 1.05rem;
+        color: #344054;
+    }
+
+    @@media print {
+        header,
+        footer,
+        .no-print {
+            display: none !important;
+        }
+
+        .container-fluid,
+        .app-shell {
+            max-width: none !important;
+            padding: 0 !important;
+        }
+
+        .certificate-sheet {
+            margin: 0;
+            min-height: 100vh;
+            border: 2px solid #111;
+            box-shadow: none;
+        }
+    }
+</style>
+
+<div class="page-header no-print">
+    <div>
+        <p class="page-kicker">Certification</p>
+        <h1>Certificate Reference</h1>
+        <p class="text-muted mb-0">Printable confirmation for a completed certification track.</p>
+    </div>
+    <div class="table-actions">
+        <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+        <a asp-action="Progress" class="btn btn-outline-secondary">Back to Progress</a>
+    </div>
+</div>
+
+<section class="certificate-sheet">
+    <p class="certificate-subtitle">Courses Helper Certification Reference</p>
+    <h1 class="certificate-title">Certificate of Completion</h1>
+
+    <p class="certificate-statement">This confirms that</p>
+    <div class="certificate-name">@Model.TraineeName</div>
+    <p class="text-center text-muted">@Model.TraineeEmail</p>
+
+    <p class="certificate-statement">
+        has completed all required courses for the <strong>@Model.CertificationName</strong> certification track.
+    </p>
+
+    <div class="mt-4">
+        <h2 class="h5">Completed Required Courses</h2>
+        <ul>
+@foreach (var course in Model.CompletedRequiredCourses)
+{
+            <li>@course</li>
+}
+        </ul>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="text-muted small">Issue Date</div>
+            <div class="fw-semibold">@Model.IssueDate.ToString("yyyy-MM-dd")</div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="text-muted small">Reference Number</div>
+            <div class="fw-semibold">@Model.ReferenceNumber</div>
+        </div>
+    </div>
+
+    <hr class="my-5" />
+
+    <p class="mb-0">
+        Coordinator confirmation: this reference is generated from trainee qualification records and certification requirements held in Courses Helper.
+    </p>
+</section>
