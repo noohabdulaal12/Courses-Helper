@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +7,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<ReportingApiOptions>(builder.Configuration.GetSection("ReportingApi"));
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<ReportingApiClient>();
+builder.Services.AddHttpClient();
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Login";
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -19,6 +30,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
